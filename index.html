@@ -79,10 +79,8 @@
   <header class="sticky top-0 z-40 border-b border-white/[0.06] bg-[#090B0F]/90 backdrop-blur-xl">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6">
       <div class="flex items-center gap-6">
-        <!-- Finalized Primary Mark Lockup -->
-        <a href="#top" onclick="switchTab('curve')" class="flex items-center gap-3 group">
+        <a href="#top" onclick="switchTab('curve'); return false;" class="flex items-center gap-3 group">
           <div class="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#0B0D10] shadow-lg shadow-[#3EE8A5]/10 group-hover:border-[#3EE8A5]/40 transition">
-            <!-- Custom SVG App Icon: Solid #3EE8A5 Mint Coin stamped with M + #FF4747 dripping crescent -->
             <svg viewBox="0 0 64 64" class="h-9 w-9">
               <circle cx="32" cy="25" r="17.5" fill="#3EE8A5" />
               <circle cx="32" cy="25" r="14" fill="none" stroke="#0B0D10" stroke-opacity="0.18" stroke-width="1.5" />
@@ -110,69 +108,65 @@
 
         <!-- Desktop Tabs -->
         <nav class="hidden lg:flex items-center gap-1 rounded-xl border border-white/[0.06] bg-[#050608] p-1">
-          <button onclick="switchTab('curve')" id="tab-curve" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold bg-[#151820] text-[#3EE8A5] transition">Bonding Launchpad</button>
-          <button onclick="switchTab('factory')" id="tab-factory" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">Token Factory</button>
-          <button onclick="switchTab('explore')" id="tab-explore" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+          <button type="button" onclick="switchTab('curve')" id="tab-curve" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold bg-[#151820] text-[#3EE8A5] transition">Bonding Launchpad</button>
+          <button type="button" onclick="switchTab('factory')" id="tab-factory" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">Token Factory</button>
+          <button type="button" onclick="switchTab('explore')" id="tab-explore" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
             Live Curves
-            <span id="live-curve-count" class="rounded-full bg-[#3EE8A5]/20 px-1.5 py-0.2 text-[10px] font-mono text-[#3EE8A5]">3</span>
+            <span id="live-curve-count" class="rounded-full bg-[#3EE8A5]/20 px-1.5 py-0.2 text-[10px] font-mono text-[#3EE8A5]">0</span>
           </button>
-          <button onclick="switchTab('locker')" id="tab-locker" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">LP Locker</button>
-          <button onclick="switchTab('logo')" id="tab-logo" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">Update Logo</button>
+          <button type="button" onclick="switchTab('locker')" id="tab-locker" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">LP Locker</button>
+          <button type="button" onclick="switchTab('logo')" id="tab-logo" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">Update Logo</button>
         </nav>
       </div>
 
-      <!-- Right Controls: Mode Badge + Wallet -->
+      <!-- Right Controls -->
       <div class="flex items-center gap-2.5 sm:gap-3">
-        <button onclick="toggleSimulationMode()" id="mode-pill" title="Toggle between Live BSC Mainnet RPC and Preview Sandbox" class="hidden sm:flex items-center gap-2 rounded-xl border border-[#F0B90B]/30 bg-[#F0B90B]/10 px-3 py-1.5 text-xs font-semibold text-[#F0B90B] hover:bg-[#F0B90B]/20 transition">
+        <button type="button" onclick="toggleSimulationMode()" id="mode-pill" title="Toggle between Live BSC Mainnet RPC and Preview Sandbox" class="hidden sm:flex items-center gap-2 rounded-xl border border-[#F0B90B]/30 bg-[#F0B90B]/10 px-3 py-1.5 text-xs font-semibold text-[#F0B90B] hover:bg-[#F0B90B]/20 transition">
           <span id="net-dot" class="h-2 w-2 rounded-full bg-[#F0B90B] animate-pulse"></span>
           <span id="net-label">BSC Mainnet RPC</span>
         </button>
 
         <div id="wallet-balance-box" class="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] bg-[#151820] px-3 py-2 font-mono text-xs font-bold text-[#F0B90B]">
-          <span id="wallet-bnb">4.2500</span> BNB
+          <span id="wallet-bnb">0.0000</span> BNB
         </div>
 
-        <button onclick="handleWalletClick()" id="connect-btn" class="mint-btn rounded-xl px-4 py-2 text-xs font-black text-[#0B0D10] transition">
+        <button type="button" onclick="handleWalletClick()" id="connect-btn" class="mint-btn rounded-xl px-4 py-2 text-xs font-black text-[#0B0D10] transition">
           Connect Wallet
         </button>
       </div>
     </div>
 
-    <!-- Mobile / Tablet Tab Bar -->
+    <!-- Mobile Tab Bar -->
     <div class="flex lg:hidden overflow-x-auto gap-1.5 border-t border-white/[0.05] px-4 py-2 bg-[#050608]">
-      <button onclick="switchTab('curve')" id="mtab-curve" class="mnav-tab rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-bold text-[#3EE8A5] whitespace-nowrap">Bonding Curve</button>
-      <button onclick="switchTab('factory')" id="mtab-factory" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Factory</button>
-      <button onclick="switchTab('explore')" id="mtab-explore" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Live Curves (3)</button>
-      <button onclick="switchTab('locker')" id="mtab-locker" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">LP Locker</button>
-      <button onclick="switchTab('logo')" id="mtab-logo" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Update Logo</button>
+      <button type="button" onclick="switchTab('curve')" id="mtab-curve" class="mnav-tab rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-bold text-[#3EE8A5] whitespace-nowrap">Bonding Curve</button>
+      <button type="button" onclick="switchTab('factory')" id="mtab-factory" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Factory</button>
+      <button type="button" onclick="switchTab('explore')" id="mtab-explore" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Live Curves</button>
+      <button type="button" onclick="switchTab('locker')" id="mtab-locker" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">LP Locker</button>
+      <button type="button" onclick="switchTab('logo')" id="mtab-logo" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Update Logo</button>
     </div>
   </header>
 
   <!-- Main Workspace -->
   <main class="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6">
 
-    <!-- Hero Banner featuring Stacked Wordmark + Creator Fee Split Pills -->
+    <!-- Hero Banner -->
     <div class="obsidian-card mb-6 flex flex-col justify-between gap-6 rounded-2xl p-5 sm:p-6 lg:flex-row lg:items-center">
       <div class="flex flex-col sm:flex-row sm:items-center gap-5">
-        <!-- Stacked Wordmark SVG Lockup (MINT / Dripping Red Bar / MELT with Notched E) -->
         <div class="shrink-0 rounded-2xl border border-white/[0.07] bg-[#0B0D10] px-4 py-3 flex flex-col items-center justify-center">
           <svg viewBox="0 0 180 96" class="h-16 w-32">
-            <!-- MINT -->
             <text x="90" y="30" text-anchor="middle" fill="#3EE8A5" font-family="Inter, sans-serif" font-weight="900" font-size="34" letter-spacing="3">MINT</text>
-            <!-- Red Dripping Divider Bar -->
             <rect x="10" y="39" width="160" height="6" rx="3" fill="#FF4747" />
             <rect x="30" y="43" width="6" height="12" rx="3" fill="#FF4747" />
             <rect x="66" y="43" width="5" height="8" rx="2.5" fill="#FF4747" />
             <rect x="112" y="43" width="6" height="15" rx="3" fill="#FF4747" />
             <rect x="148" y="43" width="5" height="7" rx="2.5" fill="#FF4747" />
-            <!-- MELT -->
             <text x="90" y="88" text-anchor="middle" fill="#FF4747" font-family="Inter, sans-serif" font-weight="900" font-size="34" letter-spacing="3">MELT</text>
           </svg>
         </div>
 
         <div>
           <div class="mb-1 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#3EE8A5]">
-            <span>⚡ Cryptobarlounge.space • BSC Forge & Curve Engine</span>
+            <span>⚡ MintMelt.fun • BSC Forge & Curve Engine</span>
           </div>
           <h1 class="text-xl font-black tracking-tight text-white sm:text-2xl">
             Mint Coins Whole. <span class="text-[#FF4747]">Melt the Jeets</span> on the Curve.
@@ -183,7 +177,6 @@
         </div>
       </div>
 
-      <!-- Economics & Creator Fee Split Badges -->
       <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2.5 text-xs">
         <div class="rounded-xl border border-white/[0.07] bg-[#151820] px-3.5 py-2.5">
           <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Launch Fee</div>
@@ -200,15 +193,15 @@
       </div>
     </div>
 
-    <!-- Notification Toast Banner -->
+    <!-- Status Banner -->
     <div id="status-banner" class="hidden mb-6 rounded-xl border border-[#3EE8A5]/40 bg-[#3EE8A5]/10 p-4 text-xs font-semibold text-[#3EE8A5] flex flex-wrap items-center justify-between gap-2 transition-all">
       <div class="flex items-center gap-2">
         <span id="status-icon" class="text-base">✅</span>
-        <span id="status-text">Transaction confirmed on BNB Smart Chain!</span>
+        <span id="status-text">Ready on BNB Smart Chain!</span>
       </div>
       <div class="flex items-center gap-3">
-        <a id="status-link" href="#" target="_blank" class="underline font-bold text-white hover:text-[#3EE8A5]">BscScan Tx ↗</a>
-        <button onclick="hideStatus()" class="text-slate-400 hover:text-white font-bold">✕</button>
+        <a id="status-link" href="#" target="_blank" class="hidden underline font-bold text-white hover:text-[#3EE8A5]">BscScan Tx ↗</a>
+        <button type="button" onclick="hideStatus()" class="text-slate-400 hover:text-white font-bold">✕</button>
       </div>
     </div>
 
@@ -216,7 +209,6 @@
          TAB 1: BONDING CURVE LAUNCHPAD
     ========================================================== -->
     <section id="view-curve" class="tab-view grid grid-cols-1 gap-6 lg:grid-cols-12">
-      <!-- Left Form -->
       <div class="obsidian-card space-y-5 rounded-2xl p-6 lg:col-span-7">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h2 class="text-base font-extrabold text-white">1. Bonding Curve Fair-Launch</h2>
@@ -250,7 +242,7 @@
 
         <div>
           <label class="mb-1.5 block text-xs font-semibold text-slate-400">Description</label>
-          <textarea id="c-desc" oninput="syncCurvePreview()" rows="2" placeholder="Stored on-chain for CBL Scanner & DEX previews..." class="obsidian-input w-full rounded-xl px-3.5 py-2 text-sm text-white"></textarea>
+          <textarea id="c-desc" oninput="syncCurvePreview()" rows="2" placeholder="Stored on-chain for DEX & scanner previews..." class="obsidian-input w-full rounded-xl px-3.5 py-2 text-sm text-white"></textarea>
         </div>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -266,7 +258,7 @@
           </div>
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-slate-400">Creator First Buy (BNB — Block 0)</label>
-            <input id="c-devbuy" type="number" step="0.05" value="0.25" min="0" oninput="syncCurvePreview()" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+            <input id="c-devbuy" type="number" step="0.01" value="0.01" min="0" oninput="syncCurvePreview()" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
           </div>
         </div>
 
@@ -287,7 +279,6 @@
             <span class="rounded-full bg-[#3EE8A5]/15 px-2.5 py-0.5 text-[11px] font-bold text-[#3EE8A5]">0.3% Dev Fee Active</span>
           </div>
 
-          <!-- Token Card -->
           <div class="rounded-2xl border border-white/10 bg-[#151820] p-4 shadow-inner">
             <div class="flex items-center gap-3.5">
               <img id="prev-img" src="https://placehold.co/100x100/0B0D10/3EE8A5?text=M" onerror="this.src='https://placehold.co/100x100/0B0D10/3EE8A5?text=M'" class="h-14 w-14 rounded-2xl border border-white/10 object-cover bg-[#0B0D10]" />
@@ -303,15 +294,14 @@
             <div class="mt-4 border-t border-white/[0.06] pt-3">
               <div class="flex justify-between text-[11px] font-semibold">
                 <span class="text-slate-400">Initial Curve Progress</span>
-                <span id="prev-progress-text" class="font-mono text-[#3EE8A5]">0.25 / 18 BNB (1.4%)</span>
+                <span id="prev-progress-text" class="font-mono text-[#3EE8A5]">0.01 / 18 BNB (0.1%)</span>
               </div>
               <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-[#050608]">
-                <div id="prev-progress-bar" class="h-full rounded-full bg-gradient-to-r from-[#3EE8A5] to-[#FF4747] transition-all duration-300" style="width: 2%"></div>
+                <div id="prev-progress-bar" class="h-full rounded-full bg-gradient-to-r from-[#3EE8A5] to-[#FF4747] transition-all duration-300" style="width: 1%"></div>
               </div>
             </div>
           </div>
 
-          <!-- Cost Breakdown -->
           <div class="space-y-2 rounded-xl border border-white/[0.06] bg-[#050608] p-4 text-xs">
             <div class="flex justify-between text-slate-400">
               <span>Launchpad Creation Fee</span>
@@ -319,7 +309,7 @@
             </div>
             <div class="flex justify-between text-slate-400">
               <span>Creator Initial Buy</span>
-              <span id="prev-devbuy" class="font-mono font-bold text-[#3EE8A5]">0.2500 BNB</span>
+              <span id="prev-devbuy" class="font-mono font-bold text-[#3EE8A5]">0.0100 BNB</span>
             </div>
             <div class="flex justify-between text-slate-400">
               <span>Your Creator Rewards</span>
@@ -327,11 +317,11 @@
             </div>
             <div class="border-t border-white/[0.06] pt-2 flex justify-between text-sm font-black text-white">
               <span>Total Payable</span>
-              <span id="prev-total" class="font-mono text-[#3EE8A5]">0.2550 BNB</span>
+              <span id="prev-total" class="font-mono text-[#3EE8A5]">0.0150 BNB</span>
             </div>
           </div>
 
-          <button onclick="deployCurve()" class="mint-melt-btn w-full rounded-xl py-3.5 text-sm font-black text-[#0B0D10] transition">
+          <button type="button" onclick="deployCurve()" class="mint-melt-btn w-full rounded-xl py-3.5 text-sm font-black text-[#0B0D10] transition">
             🚀 Launch on MintMelt Curve
           </button>
         </div>
@@ -354,19 +344,19 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label class="mb-1 block text-xs text-slate-400">Token Name *</label>
-            <input id="f-name" placeholder="e.g. CryptoBar Utility" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+            <input id="f-name" placeholder="e.g. MintMelt Utility" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
           </div>
           <div>
             <label class="mb-1 block text-xs text-slate-400">Ticker Symbol *</label>
-            <input id="f-symbol" placeholder="e.g. CBL" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm uppercase text-white" />
+            <input id="f-symbol" placeholder="e.g. MMT" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm uppercase text-white" />
           </div>
           <div>
             <label class="mb-1 block text-xs text-slate-400">Total Supply</label>
-            <input id="f-supply" type="number" value="1000000000" placeholder="Total Supply" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+            <input id="f-supply" type="number" value="1000000000" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
           </div>
           <div>
             <label class="mb-1 block text-xs text-slate-400">Decimals (6 - 18)</label>
-            <input id="f-decimals" type="number" value="18" min="6" max="18" placeholder="Decimals (18)" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+            <input id="f-decimals" type="number" value="18" min="6" max="18" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
           </div>
         </div>
 
@@ -381,7 +371,6 @@
           <input id="f-tg" placeholder="Telegram" class="obsidian-input rounded-xl px-3 py-2 text-xs text-white" />
         </div>
 
-        <!-- Tax Sliders -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="rounded-xl border border-white/10 bg-[#151820] p-3.5">
             <div class="flex justify-between text-xs font-bold">
@@ -399,7 +388,6 @@
           </div>
         </div>
 
-        <!-- Anti-Whale Limits -->
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <label class="mb-1 block text-[11px] text-slate-400">Max Wallet (% Supply, 0=off)</label>
@@ -415,7 +403,6 @@
           </div>
         </div>
 
-        <!-- Feature Flags -->
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs font-bold">
           <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] p-3 cursor-pointer hover:border-[#3EE8A5]/40">
             <input id="f-burn" type="checkbox" checked class="accent-[#3EE8A5]" /> Burnable
@@ -426,17 +413,16 @@
           <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] p-3 cursor-pointer hover:border-[#3EE8A5]/40">
             <input id="f-pause" type="checkbox" class="accent-[#3EE8A5]" /> Pausable
           </label>
-          <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] p-3 cursor-pointer hover:border-[#3EE8A5]/40">
+          <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] p-3 cursor-pointer hover:border-[#FF4747]/40">
             <input id="f-black" type="checkbox" class="accent-[#FF4747]" /> Anti-Bot List
           </label>
         </div>
 
-        <button onclick="deployStandard()" class="mint-btn w-full rounded-xl py-3.5 text-sm font-black text-[#0B0D10] transition">
+        <button type="button" onclick="deployStandard()" class="mint-btn w-full rounded-xl py-3.5 text-sm font-black text-[#0B0D10] transition">
           ⚡ Deploy Standard BEP-20 Token (0.005 BNB)
         </button>
       </div>
 
-      <!-- My Deployed Standard Tokens List -->
       <div class="mx-auto max-w-3xl obsidian-card rounded-2xl p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-sm font-extrabold uppercase tracking-wider text-white">My Deployed Tokens</h3>
@@ -456,11 +442,11 @@
           <p class="text-xs text-slate-400">Buy directly on the bonding curve. Once 100% bonded, liquidity migrates to PancakeSwap V2 automatically.</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="switchTab('curve')" class="rounded-xl bg-[#3EE8A5]/15 border border-[#3EE8A5]/30 px-3.5 py-2 text-xs font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">
+          <button type="button" onclick="switchTab('curve')" class="rounded-xl bg-[#3EE8A5]/15 border border-[#3EE8A5]/30 px-3.5 py-2 text-xs font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">
             + Launch New Coin
           </button>
-          <button onclick="renderLiveCurves()" class="rounded-xl border border-white/10 bg-[#151820] px-3.5 py-2 text-xs font-bold text-slate-200 hover:border-[#3EE8A5]/50 transition">
-            ↻ Refresh Feed
+          <button type="button" onclick="loadOnChainCurves()" class="rounded-xl border border-white/10 bg-[#151820] px-3.5 py-2 text-xs font-bold text-slate-200 hover:border-[#3EE8A5]/50 transition">
+            ↻ Refresh On-Chain
           </button>
         </div>
       </div>
@@ -494,7 +480,6 @@
           </div>
         </div>
 
-        <!-- Vault Fee Breakdown -->
         <div class="space-y-1.5 rounded-xl border border-white/[0.06] bg-[#050608] p-3.5 text-xs">
           <div class="flex justify-between text-slate-400">
             <span>MintMelt Vault Lock Fee (Flat)</span>
@@ -507,10 +492,10 @@
         </div>
 
         <div class="grid grid-cols-2 gap-3 pt-1">
-          <button onclick="approveLocker()" id="btn-approve-lock" class="rounded-xl border border-white/15 bg-[#151820] py-3 text-xs font-bold text-white hover:border-[#3EE8A5] transition">
+          <button type="button" onclick="approveLocker()" id="btn-approve-lock" class="rounded-xl border border-white/15 bg-[#151820] py-3 text-xs font-bold text-white hover:border-[#3EE8A5] transition">
             1. Approve Token
           </button>
-          <button onclick="lockTokens()" class="mint-btn rounded-xl py-3 text-xs font-black text-[#0B0D10] transition">
+          <button type="button" onclick="lockTokens()" class="mint-btn rounded-xl py-3 text-xs font-black text-[#0B0D10] transition">
             2. Lock On-Chain (0.08 BNB)
           </button>
         </div>
@@ -574,7 +559,6 @@
           <textarea id="u-desc" rows="2" placeholder="Updated project bio..." class="obsidian-input w-full rounded-xl px-3.5 py-2 text-xs text-white"></textarea>
         </div>
 
-        <!-- Metadata Update Fee Breakdown -->
         <div class="space-y-1.5 rounded-xl border border-white/[0.06] bg-[#050608] p-3.5 text-xs">
           <div class="flex justify-between text-slate-400">
             <span>On-Chain Logo & Socials Update Fee</span>
@@ -586,7 +570,7 @@
           </div>
         </div>
 
-        <button onclick="updateTokenMetadata()" class="mint-melt-btn w-full rounded-xl py-3.5 text-xs font-black text-[#0B0D10] transition">
+        <button type="button" onclick="updateTokenMetadata()" class="mint-melt-btn w-full rounded-xl py-3.5 text-xs font-black text-[#0B0D10] transition">
           Save Logo & Metadata On-Chain (0.02 BNB)
         </button>
       </div>
@@ -594,9 +578,22 @@
 
   </main>
 
+  <footer class="relative z-10 mt-12 border-t border-white/[0.06] bg-[#090B0F]/80 py-6 text-center text-xs text-slate-500">
+    <div class="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        <span class="font-bold text-[#3EE8A5]">Mint</span><span class="font-bold text-[#FF4747]">Melt</span> — Verified Contracts on BNB Smart Chain
+      </div>
+      <div class="flex flex-wrap justify-center gap-4 font-mono text-[11px]">
+        <a href="https://bscscan.com/address/0x60F42c0Bc3675b09da5C6cE4A995dD18e64CCa23" target="_blank" class="hover:text-[#3EE8A5]">Launchpad ↗</a>
+        <a href="https://bscscan.com/address/0x217A41b4b667D79a095f2Fa963e9dEfee56DdD22" target="_blank" class="hover:text-[#3EE8A5]">Factory ↗</a>
+        <a href="https://bscscan.com/address/0x066889d99E2D88035810dB9aA4062674bc42136B" target="_blank" class="hover:text-[#3EE8A5]">Locker ↗</a>
+      </div>
+    </div>
+  </footer>
+
   <script>
     // =========================================================================
-    // BSC MAINNET CONTRACT CONFIGURATION (LIVE PRODUCTION ADDRESSES)
+    // LIVE BSC MAINNET CONTRACT CONFIGURATION
     // =========================================================================
     const FACTORY_ADDRESS   = "0x217A41b4b667D79a095f2Fa963e9dEfee56DdD22";
     const LAUNCHPAD_ADDRESS = "0x60F42c0Bc3675b09da5C6cE4A995dD18e64CCa23";
@@ -605,31 +602,701 @@
 
     const CFG_TUPLE = "tuple(string name, string symbol, uint8 decimals, uint256 initialSupply, uint256 maxSupply, bool mintable, bool burnable, bool pausable, bool blacklistEnabled, uint16 buyTaxBps, uint16 sellTaxBps, uint256 maxTxAmount, uint256 maxWalletAmount, address taxWallet, address router, address creator, address controller, bool isCurveLaunch)";
     const META_TUPLE = "tuple(string logoURI, string website, string twitter, string telegram, string description)";
-// ... existing code ... -->
+
+    const LAUNCHPAD_ABI = [
+      `function launchCurve(${CFG_TUPLE} cfg, ${META_TUPLE} meta, uint256 targetBnb, bool burnLp) external payable returns (address)`,
+      "function buy(address token, uint256 minTokensOut) external payable",
+      "function sell(address token, uint256 tokensIn, uint256 minBnbOut) external",
+      "function getAllLaunchesCount() external view returns (uint256)",
+      "function allLaunches(uint256) external view returns (address)",
+      "function curves(address) external view returns (address token, address creator, uint256 virtualBnbReserve, uint256 virtualTokenReserve, uint256 realBnbRaised, uint256 tokensRemaining, uint256 lpTokensReserved, uint256 targetBnb, bool burnLp, bool graduated)"
+    ];
+
+    const FACTORY_ABI = [
+      `function createToken(${CFG_TUPLE} cfg, ${META_TUPLE} meta) external payable returns (address)`,
+      "function getTokensByCreator(address creator) external view returns (address[])"
+    ];
+
+    const TOKEN_ABI = [
+      "function name() external view returns (string)",
+      "function symbol() external view returns (string)",
+      "function totalSupply() external view returns (uint256)",
+      "function balanceOf(address) external view returns (uint256)",
+      "function approve(address spender, uint256 amount) external returns (bool)",
+      "function metadata() external view returns (string logoURI, string website, string twitter, string telegram, string description)",
+      "function updateMetadata(string logoURI, string website, string twitter, string telegram, string description) external payable"
+    ];
+
+    const LOCKER_ABI = [
+      "function lockTokens(address token, uint256 amount, uint256 unlockTime) external payable returns (uint256)",
+      "function unlockTokens(uint256 lockId) external"
+    ];
+
     // =========================================================================
-    // LIVE MAINNET / SANDBOX STATE
+    // STATE
     // =========================================================================
     let isSimulation = false;
     let walletConnected = false;
     let userAddress = null;
-// ... existing code ... -->
+    let simBalance = 4.2500;
+
+    let curvesData = [];
+    let standardTokens = [];
+    let locksData = [];
+
+    // =========================================================================
+    // TAB NAVIGATION
+    // =========================================================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      const activeView = document.getElementById('view-' + tabId);
+      if (activeView) activeView.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById('tab-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-[#151820]', 'text-[#3EE8A5]');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      document.querySelectorAll('.mnav-tab').forEach(btn => {
+        btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]');
+        btn.classList.add('text-slate-400');
+      });
+      const activeMBtn = document.getElementById('mtab-' + tabId);
+      if (activeMBtn) {
+        activeMBtn.classList.add('bg-[#151820]', 'text-[#3EE8A5]');
+        activeMBtn.classList.remove('text-slate-400');
+      }
+
+      if (tabId === 'explore') loadOnChainCurves();
+      if (tabId === 'logo') refreshTokenSelectDropdown();
+    }
+
     function toggleSimulationMode() {
       isSimulation = !isSimulation;
       const pill = document.getElementById('mode-pill');
       const dot = document.getElementById('net-dot');
       const label = document.getElementById('net-label');
       if (isSimulation) {
-        pill.classList.remove('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]', 'hover:bg-[#F0B90B]/20');
-        pill.classList.add('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]', 'hover:bg-[#3EE8A5]/20');
+        pill.classList.remove('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]');
+        pill.classList.add('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]');
         dot.classList.replace('bg-[#F0B90B]', 'bg-[#3EE8A5]');
         label.innerText = "Preview Sandbox";
-        showStatus("Switched to Instant Preview Sandbox Mode (Zero gas required to test all features).");
+        showStatus("Switched to Preview Sandbox Mode (Zero gas required to test UI).");
       } else {
-        pill.classList.remove('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]', 'hover:bg-[#3EE8A5]/20');
-        pill.classList.add('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]', 'hover:bg-[#F0B90B]/20');
+        pill.classList.remove('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]');
+        pill.classList.add('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]');
         dot.classList.replace('bg-[#3EE8A5]', 'bg-[#F0B90B]');
         label.innerText = "BSC Mainnet RPC";
-        showStatus("Switched to Live BSC Mainnet Web3 Mode. Connect MetaMask/Trust Wallet to sign real txs.");
+        showStatus("Switched to Live BSC Mainnet Mode. Connect MetaMask/Trust Wallet to sign real txs.");
+        loadOnChainCurves();
       }
     }
-// ... existing code ... -->
+
+    // =========================================================================
+    // WALLET CONNECTION (METAMASK / TRUST / RABBY + AUTO SWITCH TO BSC 56)
+    // =========================================================================
+    async function handleWalletClick() {
+      if (isSimulation) {
+        walletConnected = !walletConnected;
+        userAddress = walletConnected ? "0x71C...9A4E" : null;
+        updateWalletUI();
+        return;
+      }
+
+      if (!window.ethereum) {
+        showStatus("No Web3 wallet detected! Open this site inside MetaMask / Trust Wallet browser or install MetaMask.", null, true);
+        return;
+      }
+
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const network = await provider.getNetwork();
+
+        if (Number(network.chainId) !== 56) {
+          try {
+            await window.ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: "0x38" }]
+            });
+          } catch (switchErr) {
+            if (switchErr.code === 4902) {
+              await window.ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [{
+                  chainId: "0x38",
+                  chainName: "BNB Smart Chain Mainnet",
+                  nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+                  rpcUrls: [BSC_RPC],
+                  blockExplorerUrls: ["https://bscscan.com"]
+                }]
+              });
+            } else {
+              throw switchErr;
+            }
+          }
+        }
+
+        const updatedProvider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await updatedProvider.getSigner();
+        userAddress = await signer.getAddress();
+        const balWei = await updatedProvider.getBalance(userAddress);
+        simBalance = parseFloat(ethers.formatEther(balWei));
+        walletConnected = true;
+        updateWalletUI();
+        showStatus(`Connected to BSC Mainnet: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`);
+        loadUserOnChainTokens();
+      } catch (err) {
+        showStatus("Wallet connection failed: " + (err.reason || err.message), null, true);
+      }
+    }
+
+    function updateWalletUI() {
+      const btn = document.getElementById('connect-btn');
+      const balBox = document.getElementById('wallet-balance-box');
+      if (walletConnected && userAddress) {
+        btn.innerText = userAddress.length > 14 ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}` : userAddress;
+        balBox.classList.remove('hidden');
+        balBox.classList.add('flex');
+        document.getElementById('wallet-bnb').innerText = simBalance.toFixed(4);
+      } else {
+        btn.innerText = "Connect Wallet";
+        balBox.classList.add('hidden');
+        balBox.classList.remove('flex');
+      }
+    }
+
+    // =========================================================================
+    // LIVE CARD PREVIEW SYNC
+    // =========================================================================
+    function setCurvePresetLogo(url) {
+      document.getElementById('c-logo').value = url;
+      syncCurvePreview();
+    }
+
+    function syncCurvePreview() {
+      const name = document.getElementById('c-name').value.trim() || "Your Token Name";
+      const sym = (document.getElementById('c-symbol').value.trim() || "TICKER").toUpperCase();
+      const logo = document.getElementById('c-logo').value.trim() || "https://placehold.co/100x100/0B0D10/3EE8A5?text=M";
+      const desc = document.getElementById('c-desc').value.trim() || "Fair-launch bonding curve with instant PancakeSwap migration.";
+      const target = Math.max(1, parseFloat(document.getElementById('c-target').value) || 18);
+      const devBuy = Math.max(0, parseFloat(document.getElementById('c-devbuy').value) || 0);
+
+      document.getElementById('prev-name').innerText = name;
+      document.getElementById('prev-symbol').innerText = "$" + sym;
+      document.getElementById('prev-img').src = logo;
+      document.getElementById('prev-desc').innerText = desc;
+
+      const pct = Math.min(100, (devBuy / target) * 100);
+      document.getElementById('prev-progress-text').innerText = `${devBuy.toFixed(2)} / ${target} BNB (${pct.toFixed(1)}%)`;
+      document.getElementById('prev-progress-bar').style.width = Math.max(2, pct) + "%";
+      document.getElementById('prev-devbuy').innerText = devBuy.toFixed(4) + " BNB";
+      document.getElementById('prev-total').innerText = (0.005 + devBuy).toFixed(4) + " BNB";
+    }
+
+    // =========================================================================
+    // 1. LAUNCH ON BONDING CURVE
+    // =========================================================================
+    async function deployCurve() {
+      const name = document.getElementById('c-name').value.trim();
+      const symbol = document.getElementById('c-symbol').value.trim().toUpperCase();
+      if (!name || !symbol) {
+        showStatus("Please enter a Token Name and Ticker Symbol.", null, true);
+        return;
+      }
+
+      const logoURI = document.getElementById('c-logo').value.trim() || `https://placehold.co/120x120/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0,4))}`;
+      const desc = document.getElementById('c-desc').value.trim();
+      const web = document.getElementById('c-web').value.trim();
+      const x = document.getElementById('c-x').value.trim();
+      const tg = document.getElementById('c-tg').value.trim();
+      const targetBnb = parseFloat(document.getElementById('c-target').value) || 18;
+      const devBuy = parseFloat(document.getElementById('c-devbuy').value) || 0;
+      const burnLp = document.getElementById('c-burnlp').checked;
+      const totalBnb = (0.005 + devBuy).toFixed(6);
+
+      if (!isSimulation) {
+        if (!walletConnected) await handleWalletClick();
+        if (!walletConnected) return;
+
+        try {
+          showStatus("Confirm transaction in your wallet...");
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer);
+
+          const cfg = {
+            name, symbol, decimals: 18,
+            initialSupply: 0n, maxSupply: 0n,
+            mintable: false, burnable: true, pausable: false, blacklistEnabled: false,
+            buyTaxBps: 0, sellTaxBps: 0, maxTxAmount: 0n, maxWalletAmount: 0n,
+            taxWallet: ethers.ZeroAddress, router: ethers.ZeroAddress,
+            creator: ethers.ZeroAddress, controller: ethers.ZeroAddress, isCurveLaunch: true
+          };
+          const meta = { logoURI, website: web, twitter: x, telegram: tg, description: desc };
+
+          const tx = await launchpad.launchCurve(cfg, meta, ethers.parseEther(targetBnb.toString()), burnLp, {
+            value: ethers.parseEther(totalBnb)
+          });
+          showStatus("Transaction submitted! Waiting for BSC confirmation...", `https://bscscan.com/tx/${tx.hash}`);
+          await tx.wait();
+          showStatus(`🎉 ${name} ($${symbol}) is LIVE on MintMelt!`, `https://bscscan.com/tx/${tx.hash}`);
+          await loadOnChainCurves();
+          switchTab('explore');
+        } catch (err) {
+          showStatus("Launch failed: " + (err.reason || err.message), null, true);
+        }
+        return;
+      }
+
+      // Sandbox Mode
+      const fakeAddr = "0x" + Math.random().toString(16).substring(2, 10) + "..." + Math.random().toString(16).substring(2, 6);
+      curvesData.unshift({
+        address: fakeAddr, name, symbol, logoURI, description: desc || "Launched on MintMelt",
+        raised: devBuy, target: targetBnb, graduated: devBuy >= targetBnb
+      });
+      renderCurvesGrid();
+      showStatus(`Sandbox: Launched ${name} ($${symbol})!`);
+      switchTab('explore');
+    }
+
+    // =========================================================================
+    // 2. DEPLOY STANDARD BEP-20 TOKEN
+    // =========================================================================
+    async function deployStandard() {
+      const name = document.getElementById('f-name').value.trim();
+      const symbol = document.getElementById('f-symbol').value.trim().toUpperCase();
+      if (!name || !symbol) {
+        showStatus("Please enter a Token Name and Ticker Symbol.", null, true);
+        return;
+      }
+
+      const decimals = parseInt(document.getElementById('f-decimals').value) || 18;
+      const supplyNum = document.getElementById('f-supply').value || "1000000000";
+      const logoURI = document.getElementById('f-logo').value.trim() || `https://placehold.co/120x120/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0,4))}`;
+      const buyTaxBps = (parseInt(document.getElementById('f-buytax').value) || 0) * 100;
+      const sellTaxBps = (parseInt(document.getElementById('f-selltax').value) || 0) * 100;
+      const maxWalPct = parseFloat(document.getElementById('f-maxwal').value) || 0;
+      const maxTxPct = parseFloat(document.getElementById('f-maxtx').value) || 0;
+      const taxWalletInput = document.getElementById('f-taxwal').value.trim();
+
+      if (!isSimulation) {
+        if (!walletConnected) await handleWalletClick();
+        if (!walletConnected) return;
+
+        try {
+          showStatus("Confirm Token Factory deployment in your wallet...");
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          const factory = new ethers.Contract(FACTORY_ADDRESS, FACTORY_ABI, signer);
+
+          const initialSupply = ethers.parseUnits(supplyNum.toString(), decimals);
+          const maxWalletAmount = maxWalPct > 0 ? (initialSupply * BigInt(Math.floor(maxWalPct * 100))) / 10000n : 0n;
+          const maxTxAmount = maxTxPct > 0 ? (initialSupply * BigInt(Math.floor(maxTxPct * 100))) / 10000n : 0n;
+
+          const cfg = {
+            name, symbol, decimals,
+            initialSupply,
+            maxSupply: initialSupply,
+            mintable: document.getElementById('f-mint').checked,
+            burnable: document.getElementById('f-burn').checked,
+            pausable: document.getElementById('f-pause').checked,
+            blacklistEnabled: document.getElementById('f-black').checked,
+            buyTaxBps, sellTaxBps,
+            maxTxAmount, maxWalletAmount,
+            taxWallet: ethers.isAddress(taxWalletInput) ? taxWalletInput : ethers.ZeroAddress,
+            router: ethers.ZeroAddress, creator: ethers.ZeroAddress, controller: ethers.ZeroAddress,
+            isCurveLaunch: false
+          };
+          const meta = {
+            logoURI,
+            website: document.getElementById('f-web').value.trim(),
+            twitter: document.getElementById('f-x').value.trim(),
+            telegram: document.getElementById('f-tg').value.trim(),
+            description: ""
+          };
+
+          const tx = await factory.createToken(cfg, meta, { value: ethers.parseEther("0.005") });
+          showStatus("Deploying BEP-20 token on BSC Mainnet...", `https://bscscan.com/tx/${tx.hash}`);
+          await tx.wait();
+          showStatus(`⚡ ${name} ($${symbol}) minted to your wallet!`, `https://bscscan.com/tx/${tx.hash}`);
+          await loadUserOnChainTokens();
+        } catch (err) {
+          showStatus("Deployment failed: " + (err.reason || err.message), null, true);
+        }
+        return;
+      }
+
+      standardTokens.unshift({
+        address: "0x" + Math.random().toString(16).substring(2, 42).padEnd(40, "0"),
+        name, symbol, logoURI
+      });
+      renderStandardTokens();
+      showStatus(`Sandbox: Minted ${name} ($${symbol})!`);
+    }
+
+    // =========================================================================
+    // 3. LOAD & BUY LIVE BONDING CURVES ON BSC MAINNET
+    // =========================================================================
+    async function loadOnChainCurves() {
+      if (isSimulation) {
+        renderCurvesGrid();
+        return;
+      }
+
+      try {
+        const provider = new ethers.JsonRpcProvider(BSC_RPC);
+        const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, provider);
+        const count = Number(await launchpad.getAllLaunchesCount());
+
+        document.getElementById('live-curve-count').innerText = count;
+        document.getElementById('mtab-explore').innerText = `Live Curves (${count})`;
+
+        const loaded = [];
+        const start = Math.max(0, count - 18);
+        for (let i = count - 1; i >= start; i--) {
+          const tokenAddr = await launchpad.allLaunches(i);
+          const c = await launchpad.curves(tokenAddr);
+          const token = new ethers.Contract(tokenAddr, TOKEN_ABI, provider);
+          const [name, symbol, meta] = await Promise.all([
+            token.name(),
+            token.symbol(),
+            token.metadata()
+          ]);
+          loaded.push({
+            address: tokenAddr,
+            name,
+            symbol,
+            logoURI: meta.logoURI || `https://placehold.co/100x100/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0,4))}`,
+            description: meta.description || "MintMelt Bonding Curve Token",
+            raised: parseFloat(ethers.formatEther(c.realBnbRaised)),
+            target: parseFloat(ethers.formatEther(c.targetBnb)),
+            graduated: c.graduated
+          });
+        }
+        curvesData = loaded;
+        renderCurvesGrid();
+      } catch (err) {
+        console.error("Failed to fetch curves:", err);
+        renderCurvesGrid();
+      }
+    }
+
+    function renderCurvesGrid() {
+      const grid = document.getElementById('curves-grid');
+      if (!curvesData.length) {
+        grid.innerHTML = `
+          <div class="col-span-full obsidian-card rounded-2xl p-8 text-center">
+            <div class="text-2xl mb-2">🟢🔴</div>
+            <h3 class="text-sm font-extrabold text-white">No Bonding Curves Launched Yet</h3>
+            <p class="mt-1 text-xs text-slate-400">Be the very first creator to launch a coin on MintMelt BSC Mainnet!</p>
+            <button type="button" onclick="switchTab('curve')" class="mint-btn mt-4 rounded-xl px-4 py-2 text-xs font-black text-[#0B0D10]">
+              Launch First Coin →
+            </button>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = curvesData.map((c, idx) => {
+        const pct = Math.min(100, (c.raised / (c.target || 18)) * 100);
+        return `
+          <div class="obsidian-card rounded-2xl p-5 flex flex-col justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3">
+                <img src="${c.logoURI}" onerror="this.src='https://placehold.co/100x100/0B0D10/3EE8A5?text=M'" class="h-12 w-12 rounded-xl border border-white/10 object-cover bg-[#0B0D10]" />
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <h3 class="truncate text-sm font-extrabold text-white">${c.name}</h3>
+                    <span class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#3EE8A5]">$${c.symbol}</span>
+                  </div>
+                  <a href="https://bscscan.com/token/${c.address}" target="_blank" class="font-mono text-[11px] text-slate-400 hover:text-[#3EE8A5]">
+                    ${c.address.slice(0, 8)}...${c.address.slice(-6)} ↗
+                  </a>
+                </div>
+              </div>
+              <p class="mt-3 line-clamp-2 text-xs text-slate-400">${c.description}</p>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-[11px] font-semibold">
+                <span class="text-slate-400">${c.graduated ? '🎓 Graduated to PancakeSwap' : 'Bonding Progress'}</span>
+                <span class="font-mono text-[#3EE8A5]">${c.raised.toFixed(3)} / ${c.target} BNB (${pct.toFixed(1)}%)</span>
+              </div>
+              <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-[#050608]">
+                <div class="h-full rounded-full bg-gradient-to-r from-[#3EE8A5] to-[#FF4747]" style="width: ${Math.max(2, pct)}%"></div>
+              </div>
+
+              ${c.graduated
+                ? `<a href="https://pancakeswap.finance/swap?outputCurrency=${c.address}" target="_blank" class="mt-3 block w-full rounded-xl bg-[#F0B90B] py-2.5 text-center text-xs font-black text-[#0B0D10]">Trade on PancakeSwap ↗</a>`
+                : `<div class="mt-3 flex gap-2">
+                    <input id="buy-amt-${idx}" type="number" step="0.01" value="0.05" min="0.001" class="obsidian-input w-24 rounded-xl px-2.5 py-2 text-xs font-mono text-white" />
+                    <button type="button" onclick="buyCurve('${c.address}', ${idx})" class="mint-btn flex-1 rounded-xl py-2 text-xs font-black text-[#0B0D10] transition">
+                      Buy $${c.symbol}
+                    </button>
+                  </div>`
+              }
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function buyCurve(tokenAddr, idx) {
+      const amtStr = document.getElementById(`buy-amt-${idx}`).value || "0.05";
+      const amt = parseFloat(amtStr);
+      if (amt <= 0) return;
+
+      if (!isSimulation) {
+        if (!walletConnected) await handleWalletClick();
+        if (!walletConnected) return;
+
+        try {
+          showStatus(`Confirm ${amt} BNB buy in your wallet...`);
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer);
+          const tx = await launchpad.buy(tokenAddr, 0, { value: ethers.parseEther(amt.toString()) });
+          showStatus("Buy transaction sent! Waiting for confirmation...", `https://bscscan.com/tx/${tx.hash}`);
+          await tx.wait();
+          showStatus(`✅ Bought tokens for ${amt} BNB!`, `https://bscscan.com/tx/${tx.hash}`);
+          loadOnChainCurves();
+        } catch (err) {
+          showStatus("Buy failed: " + (err.reason || err.message), null, true);
+        }
+        return;
+      }
+
+      curvesData[idx].raised += amt * 0.99;
+      renderCurvesGrid();
+      showStatus(`Sandbox: Bought ${amt} BNB worth of $${curvesData[idx].symbol}!`);
+    }
+
+    // =========================================================================
+    // 4. LP & TEAM TOKEN LOCKER (0.08 BNB FEE)
+    // =========================================================================
+    async function approveLocker() {
+      const tokenAddr = document.getElementById('l-token').value.trim();
+      const amount = document.getElementById('l-amount').value.trim();
+      if (!ethers.isAddress(tokenAddr) || !amount) {
+        showStatus("Enter a valid token/LP contract address and amount first.", null, true);
+        return;
+      }
+
+      if (isSimulation) {
+        showStatus("Sandbox: Token approved for MintMelt Locker!");
+        return;
+      }
+
+      if (!walletConnected) await handleWalletClick();
+      if (!walletConnected) return;
+
+      try {
+        showStatus("Approve token spending in your wallet...");
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const token = new ethers.Contract(tokenAddr, TOKEN_ABI, signer);
+        const tx = await token.approve(LOCKER_ADDRESS, ethers.parseUnits(amount, 18));
+        await tx.wait();
+        showStatus("✅ Token approved! Now click Step 2: Lock On-Chain.", `https://bscscan.com/tx/${tx.hash}`);
+      } catch (err) {
+        showStatus("Approval failed: " + (err.reason || err.message), null, true);
+      }
+    }
+
+    async function lockTokens() {
+      const tokenAddr = document.getElementById('l-token').value.trim();
+      const amount = document.getElementById('l-amount').value.trim();
+      const days = parseInt(document.getElementById('l-days').value) || 180;
+      if (!ethers.isAddress(tokenAddr) || !amount) {
+        showStatus("Enter a valid token/LP contract address and amount.", null, true);
+        return;
+      }
+
+      const unlockTime = Math.floor(Date.now() / 1000) + days * 86400;
+
+      if (isSimulation) {
+        locksData.unshift({ token: tokenAddr, amount, days });
+        renderLocksList();
+        showStatus(`Sandbox: Locked ${amount} tokens for ${days} days!`);
+        return;
+      }
+
+      if (!walletConnected) await handleWalletClick();
+      if (!walletConnected) return;
+
+      try {
+        showStatus("Confirm 0.08 BNB lock transaction in your wallet...");
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const locker = new ethers.Contract(LOCKER_ADDRESS, LOCKER_ABI, signer);
+        const tx = await locker.lockTokens(tokenAddr, ethers.parseUnits(amount, 18), unlockTime, {
+          value: ethers.parseEther("0.08")
+        });
+        await tx.wait();
+        locksData.unshift({ token: tokenAddr, amount, days });
+        renderLocksList();
+        showStatus(`🔒 Locked ${amount} tokens on-chain for ${days} days!`, `https://bscscan.com/tx/${tx.hash}`);
+      } catch (err) {
+        showStatus("Lock failed: " + (err.reason || err.message), null, true);
+      }
+    }
+
+    function renderLocksList() {
+      const list = document.getElementById('locks-list');
+      if (!locksData.length) {
+        list.innerHTML = `<p class="text-xs text-slate-500">No locks created in this session yet.</p>`;
+        return;
+      }
+      list.innerHTML = locksData.map(l => `
+        <div class="flex items-center justify-between rounded-xl border border-white/10 bg-[#151820] p-3.5 text-xs">
+          <div>
+            <div class="font-mono font-bold text-white">${l.token.slice(0, 10)}...${l.token.slice(-6)}</div>
+            <div class="text-slate-400">Locked Amount: <strong class="text-[#3EE8A5]">${l.amount}</strong></div>
+          </div>
+          <span class="rounded-lg bg-[#3EE8A5]/15 px-2.5 py-1 font-bold text-[#3EE8A5]">🔒 ${l.days} Days</span>
+        </div>
+      `).join('');
+    }
+
+    // =========================================================================
+    // 5. POST-LAUNCH LOGO & METADATA UPDATER (0.02 BNB FEE)
+    // =========================================================================
+    async function loadUserOnChainTokens() {
+      if (isSimulation || !walletConnected || !userAddress) return;
+      try {
+        const provider = new ethers.JsonRpcProvider(BSC_RPC);
+        const factory = new ethers.Contract(FACTORY_ADDRESS, FACTORY_ABI, provider);
+        const addrs = await factory.getTokensByCreator(userAddress);
+        const list = [];
+        for (const addr of addrs) {
+          const t = new ethers.Contract(addr, TOKEN_ABI, provider);
+          const [name, symbol, meta] = await Promise.all([t.name(), t.symbol(), t.metadata()]);
+          list.push({ address: addr, name, symbol, logoURI: meta.logoURI });
+        }
+        standardTokens = list;
+        renderStandardTokens();
+        refreshTokenSelectDropdown();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderStandardTokens() {
+      const container = document.getElementById('standard-tokens-list');
+      if (!standardTokens.length) {
+        container.innerHTML = `<p class="text-xs text-slate-500">Connect your wallet to load tokens you minted via MintMelt Factory.</p>`;
+        return;
+      }
+      container.innerHTML = standardTokens.map(t => `
+        <div class="flex items-center justify-between rounded-xl border border-white/10 bg-[#151820] p-3.5">
+          <div class="flex items-center gap-3">
+            <img src="${t.logoURI}" onerror="this.src='https://placehold.co/80x80/0B0D10/3EE8A5?text=M'" class="h-10 w-10 rounded-lg object-cover bg-[#0B0D10]" />
+            <div>
+              <div class="text-xs font-extrabold text-white">${t.name} <span class="text-[#3EE8A5]">($${t.symbol})</span></div>
+              <a href="https://bscscan.com/token/${t.address}" target="_blank" class="font-mono text-[11px] text-slate-400 hover:text-[#3EE8A5]">${t.address} ↗</a>
+            </div>
+          </div>
+          <button type="button" onclick="openLogoEditorFor('${t.address}')" class="rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-bold text-white hover:border-[#3EE8A5]">
+            Edit Logo
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function refreshTokenSelectDropdown() {
+      const sel = document.getElementById('u-select');
+      const all = [...curvesData, ...standardTokens];
+      sel.innerHTML = `<option value="">-- Choose a token or paste address below --</option>` +
+        all.map(t => `<option value="${t.address}">${t.name} ($${t.symbol}) — ${t.address.slice(0,8)}...</option>`).join('');
+    }
+
+    function selectTokenForMetaEdit(addr) {
+      if (addr) document.getElementById('u-token').value = addr;
+    }
+
+    function openLogoEditorFor(addr) {
+      switchTab('logo');
+      document.getElementById('u-token').value = addr;
+    }
+
+    async function updateTokenMetadata() {
+      const tokenAddr = document.getElementById('u-token').value.trim();
+      const logoURI = document.getElementById('u-logo').value.trim();
+      if (!ethers.isAddress(tokenAddr) || !logoURI) {
+        showStatus("Please enter a valid Token Address and Logo URL.", null, true);
+        return;
+      }
+
+      const web = document.getElementById('u-web').value.trim();
+      const x = document.getElementById('u-x').value.trim();
+      const tg = document.getElementById('u-tg').value.trim();
+      const desc = document.getElementById('u-desc').value.trim();
+
+      if (isSimulation) {
+        showStatus("Sandbox: Token logo & socials updated on-chain!");
+        return;
+      }
+
+      if (!walletConnected) await handleWalletClick();
+      if (!walletConnected) return;
+
+      try {
+        showStatus("Confirm 0.02 BNB metadata update in your wallet...");
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const token = new ethers.Contract(tokenAddr, TOKEN_ABI, signer);
+        const tx = await token.updateMetadata(logoURI, web, x, tg, desc, {
+          value: ethers.parseEther("0.02")
+        });
+        await tx.wait();
+        showStatus("🎨 On-chain logo & socials updated!", `https://bscscan.com/tx/${tx.hash}`);
+        loadOnChainCurves();
+      } catch (err) {
+        showStatus("Metadata update failed: " + (err.reason || err.message), null, true);
+      }
+    }
+
+    // =========================================================================
+    // STATUS TOAST HELPERS & INIT
+    // =========================================================================
+    function showStatus(msg, txUrl = null, isError = false) {
+      const banner = document.getElementById('status-banner');
+      const icon = document.getElementById('status-icon');
+      const text = document.getElementById('status-text');
+      const link = document.getElementById('status-link');
+
+      banner.classList.remove('hidden', 'border-[#3EE8A5]/40', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]', 'border-[#FF4747]/40', 'bg-[#FF4747]/10', 'text-[#FF4747]');
+      if (isError) {
+        banner.classList.add('border-[#FF4747]/40', 'bg-[#FF4747]/10', 'text-[#FF4747]');
+        icon.innerText = "⚠️";
+      } else {
+        banner.classList.add('border-[#3EE8A5]/40', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]');
+        icon.innerText = "✅";
+      }
+      text.innerText = msg;
+
+      if (txUrl) {
+        link.href = txUrl;
+        link.classList.remove('hidden');
+      } else {
+        link.classList.add('hidden');
+      }
+    }
+
+    function hideStatus() {
+      document.getElementById('status-banner').classList.add('hidden');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      syncCurvePreview();
+      renderStandardTokens();
+      renderLocksList();
+      loadOnChainCurves();
+    });
+  </script>
+</body>
+</html>
