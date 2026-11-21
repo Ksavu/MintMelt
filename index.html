@@ -537,6 +537,223 @@
     </section>
 
     <!-- =========================================================
+         TOKEN TERMINAL PAGE (CHART, BUY/SELL SWAP, CHAT & LIVE TRADES)
+    ========================================================== -->
+    <section id="view-token" class="tab-view hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <button type="button" onclick="closeTokenTerminal()" class="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] px-3.5 py-2 text-xs font-bold text-slate-200 hover:border-[#3EE8A5]/50 transition">
+          ← Back to Live Curves
+        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="copyCurrentTokenAddress()" class="rounded-xl border border-white/10 bg-[#151820] px-3 py-2 font-mono text-xs font-bold text-slate-300 hover:border-[#3EE8A5]">
+            📋 Copy CA
+          </button>
+          <button type="button" onclick="shareTokenLink()" class="rounded-xl border border-[#3EE8A5]/30 bg-[#3EE8A5]/10 px-3 py-2 text-xs font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">
+            🔗 Share Token Link
+          </button>
+          <a id="td-bscscan-link" href="#" target="_blank" class="rounded-xl border border-white/10 bg-[#151820] px-3 py-2 text-xs font-bold text-slate-300 hover:text-white">
+            BscScan ↗
+          </a>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <!-- LEFT 8 COLS: TOKEN HEADER + INTERACTIVE CHART + LIVE CHAT & TRADES -->
+        <div class="space-y-5 lg:col-span-8">
+          <div class="obsidian-card rounded-2xl p-5 sm:p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <img id="td-logo" src="https://placehold.co/120x120/0B0D10/3EE8A5?text=M" onerror="this.src='https://placehold.co/120x120/0B0D10/3EE8A5?text=M'" class="h-16 w-16 rounded-2xl border border-white/15 object-cover bg-[#0B0D10]" />
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h2 id="td-name" class="text-xl font-black text-white">Token Name</h2>
+                    <span id="td-symbol" class="rounded-md bg-[#3EE8A5]/15 px-2 py-0.5 font-mono text-xs font-bold text-[#3EE8A5]">$TICKER</span>
+                    <span id="td-status-badge" class="rounded-md border border-[#F0B90B]/30 bg-[#F0B90B]/10 px-2 py-0.5 text-[11px] font-bold text-[#F0B90B]">Bonding Active</span>
+                  </div>
+                  <div class="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
+                    <span>CA: <span id="td-ca" class="font-mono text-slate-200">0x0000...0000</span></span>
+                    <span>•</span>
+                    <span>Creator: <span id="td-creator" class="font-mono text-[#3EE8A5]">0x0000...0000</span></span>
+                  </div>
+                </div>
+              </div>
+
+              <div id="td-socials" class="flex flex-wrap items-center gap-2 text-xs"></div>
+            </div>
+
+            <p id="td-desc" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div class="rounded-xl border border-white/[0.06] bg-[#151820] p-3">
+                <div class="text-[10px] font-semibold uppercase text-slate-400">Token Price</div>
+                <div id="td-price" class="mt-0.5 font-mono text-xs sm:text-sm font-extrabold text-[#3EE8A5]">0.00000000 BNB</div>
+              </div>
+              <div class="rounded-xl border border-white/[0.06] bg-[#151820] p-3">
+                <div class="text-[10px] font-semibold uppercase text-slate-400">Market Cap</div>
+                <div id="td-mcap" class="mt-0.5 font-mono text-xs sm:text-sm font-extrabold text-white">0.00 BNB</div>
+              </div>
+              <div class="rounded-xl border border-white/[0.06] bg-[#151820] p-3">
+                <div class="text-[10px] font-semibold uppercase text-slate-400">Virtual Liquidity</div>
+                <div id="td-liq" class="mt-0.5 font-mono text-xs sm:text-sm font-extrabold text-white">0.00 BNB</div>
+              </div>
+              <div class="rounded-xl border border-white/[0.06] bg-[#151820] p-3">
+                <div class="text-[10px] font-semibold uppercase text-slate-400">LP Graduation</div>
+                <div id="td-lp-badge" class="mt-0.5 font-mono text-xs sm:text-sm font-extrabold text-[#FF4747]">🔥 Auto-Burn</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Price / Bonding Curve Chart -->
+          <div class="obsidian-card rounded-2xl p-5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-white">Bonding Curve Price Chart</span>
+                <span class="rounded bg-[#3EE8A5]/10 px-2 py-0.5 font-mono text-[10px] font-bold text-[#3EE8A5]">x * y = k</span>
+              </div>
+              <button type="button" onclick="refreshActiveTokenTerminal()" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:border-[#3EE8A5]">
+                ↻ Sync Chart & Trades
+              </button>
+            </div>
+            <div class="relative h-64 w-full rounded-xl border border-white/[0.06] bg-[#050608] p-2">
+              <canvas id="td-chart-canvas" class="h-full w-full"></canvas>
+            </div>
+          </div>
+
+          <!-- Token Community Thread / Chat & Live Trades Tabs -->
+          <div class="obsidian-card rounded-2xl p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.07] pb-3">
+              <div class="flex items-center gap-1.5 rounded-xl border border-white/[0.07] bg-[#050608] p-1">
+                <button type="button" id="td-subtab-chat" onclick="switchTokenBottomTab('chat')" class="rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-extrabold text-[#3EE8A5] transition flex items-center gap-1.5">
+                  💬 Thread / Chat
+                  <span id="td-chat-count" class="rounded-full bg-[#3EE8A5]/20 px-1.5 py-0.2 font-mono text-[10px] text-[#3EE8A5]">0</span>
+                </button>
+                <button type="button" id="td-subtab-trades" onclick="switchTokenBottomTab('trades')" class="rounded-lg px-3 py-1.5 text-xs font-extrabold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+                  📊 Curve Trades
+                  <span id="td-trades-count" class="rounded-full bg-white/10 px-1.5 py-0.2 font-mono text-[10px] text-slate-300">0</span>
+                </button>
+              </div>
+              <span class="text-[11px] text-slate-400">Wallet-verified messages • <span class="text-[#3EE8A5] font-bold">DEV</span> badge auto-detected</span>
+            </div>
+
+            <!-- PANEL A: LIVE TOKEN CHAT / THREAD -->
+            <div id="td-panel-chat" class="space-y-4">
+              <div class="flex flex-col sm:flex-row gap-2.5">
+                <input
+                  id="td-chat-input"
+                  maxlength="280"
+                  onkeydown="if(event.key==='Enter'){ postTokenChatMessage(); }"
+                  placeholder="Write a comment on this token (e.g. 'LFG melting jeets! 🔥')..."
+                  class="obsidian-input flex-1 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white"
+                />
+                <button type="button" onclick="postTokenChatMessage()" class="mint-btn shrink-0 rounded-xl px-5 py-2.5 text-xs font-black text-[#0B0D10] transition">
+                  Post Comment
+                </button>
+              </div>
+
+              <div id="td-chat-feed" class="max-h-96 overflow-y-auto space-y-2.5 pr-1"></div>
+            </div>
+
+            <!-- PANEL B: RECENT CURVE TRADES -->
+            <div id="td-panel-trades" class="hidden overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="border-b border-white/[0.07] text-[10px] font-bold uppercase text-slate-400">
+                    <th class="py-2.5 pr-3">Trader</th>
+                    <th class="py-2.5 px-3">Type</th>
+                    <th class="py-2.5 px-3">BNB</th>
+                    <th class="py-2.5 px-3">Tokens</th>
+                    <th class="py-2.5 pl-3 text-right">Tx</th>
+                  </tr>
+                </thead>
+                <tbody id="td-trades-body" class="divide-y divide-white/[0.05] font-mono text-[11px]"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT 4 COLS: BUY / SELL SWAP PANEL + BONDING METER -->
+        <div class="space-y-5 lg:col-span-4">
+          <div class="obsidian-card sticky top-24 rounded-2xl p-5 space-y-4">
+            <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-white/[0.07] bg-[#050608] p-1">
+              <button type="button" id="td-mode-buy" onclick="setTradeSide('buy')" class="rounded-lg bg-[#3EE8A5] py-2.5 text-xs font-black text-[#0B0D10] transition">
+                Buy
+              </button>
+              <button type="button" id="td-mode-sell" onclick="setTradeSide('sell')" class="rounded-lg py-2.5 text-xs font-black text-slate-400 hover:text-white transition">
+                Sell
+              </button>
+            </div>
+
+            <div id="td-graduated-panel" class="hidden rounded-xl border border-[#F0B90B]/35 bg-[#F0B90B]/10 p-4 text-center space-y-3">
+              <div class="text-sm font-black text-[#F0B90B]">🎉 Graduated to PancakeSwap V2!</div>
+              <p class="text-xs text-slate-300">100% of the bonding curve has filled and liquidity is live on PancakeSwap.</p>
+              <a id="td-pcs-link" href="#" target="_blank" class="block w-full rounded-xl bg-[#F0B90B] py-3 text-xs font-black text-[#0B0D10]">
+                Trade on PancakeSwap V2 ↗
+              </a>
+            </div>
+
+            <div id="td-swap-form" class="space-y-4">
+              <div class="flex items-center justify-between text-[11px] text-slate-400">
+                <span id="td-input-label">Amount (BNB)</span>
+                <span>Your Token Bal: <strong id="td-user-token-bal" class="font-mono text-white">0.00</strong></span>
+              </div>
+
+              <div class="relative">
+                <input id="td-amount-input" type="number" step="any" min="0" placeholder="0.00" oninput="updateTradeQuote()" class="obsidian-input w-full rounded-xl px-3.5 py-3 pr-16 font-mono text-base font-bold text-white" />
+                <span id="td-input-unit" class="absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-xs font-extrabold text-[#3EE8A5]">BNB</span>
+              </div>
+
+              <div id="td-quick-presets" class="grid grid-cols-4 gap-1.5 font-mono text-[11px] font-bold">
+                <button type="button" onclick="setTradeQuickAmount(0.05)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#3EE8A5]">0.05</button>
+                <button type="button" onclick="setTradeQuickAmount(0.25)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#3EE8A5]">0.25</button>
+                <button type="button" onclick="setTradeQuickAmount(0.5)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#3EE8A5]">0.50</button>
+                <button type="button" onclick="setTradeQuickAmount(1.0)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#3EE8A5]">1.00</button>
+              </div>
+
+              <div class="rounded-xl border border-white/[0.06] bg-[#050608] p-3.5 space-y-1.5 text-xs">
+                <div class="flex justify-between text-slate-400">
+                  <span>Estimated Receive</span>
+                  <span id="td-quote-out" class="font-mono font-bold text-white">0.00</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>Curve Fee (0.7% Platform / 0.3% Dev)</span>
+                  <span class="font-mono text-slate-300">1.0%</span>
+                </div>
+              </div>
+
+              <div id="td-buy-btn-wrap">
+                <button type="button" onclick="executeTerminalBuy()" class="mint-btn w-full rounded-xl py-3.5 text-xs font-black text-[#0B0D10] transition">
+                  ⚡ Place Buy Order
+                </button>
+              </div>
+
+              <div id="td-sell-btn-wrap" class="hidden grid grid-cols-2 gap-2">
+                <button type="button" onclick="approveTerminalSell()" class="rounded-xl border border-white/15 bg-[#151820] py-3 text-xs font-bold text-white hover:border-[#FF4747] transition">
+                  1. Approve
+                </button>
+                <button type="button" onclick="executeTerminalSell()" class="rounded-xl bg-[#FF4747] py-3 text-xs font-black text-white hover:brightness-110 transition">
+                  2. Sell Tokens
+                </button>
+              </div>
+            </div>
+
+            <div class="border-t border-white/[0.07] pt-4 space-y-2">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-slate-300">Bonding Curve Progress</span>
+                <span id="td-progress-pct" class="font-mono text-[#3EE8A5]">0.0%</span>
+              </div>
+              <div class="h-3 w-full overflow-hidden rounded-full bg-[#050608] border border-white/[0.06]">
+                <div id="td-progress-bar" class="h-full rounded-full bg-gradient-to-r from-[#3EE8A5] to-[#FF4747] transition-all duration-300" style="width: 2%"></div>
+              </div>
+              <p id="td-progress-sub" class="text-[11px] text-slate-400 leading-relaxed">
+                When <strong class="text-white">0 BNB</strong> is raised, all remaining tokens and BNB automatically migrate to PancakeSwap V2.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
          TAB 4: LP & TEAM TOKEN LOCKER
     ========================================================== -->
     <section id="view-locker" class="tab-view hidden space-y-6">
@@ -706,14 +923,8 @@
       "function getAllLaunchesCount() external view returns (uint256)",
       "function allLaunches(uint256) external view returns (address)",
       "function curves(address) external view returns (address token, address creator, uint256 virtualBnbReserve, uint256 virtualTokenReserve, uint256 realBnbRaised, uint256 tokensRemaining, uint256 lpTokensReserved, uint256 targetBnb, bool burnLp, bool graduated)",
-      "event CurveLaunched(address indexed token, address indexed creator, string name, string symbol, string logoURI, uint256 targetBnb)"
-    ];
-
-    const LOCKER_ABI = [
-      "function lockTokens(address token, uint256 amount, uint256 unlockTime) external payable returns (uint256)",
-      "function unlockTokens(uint256 lockId) external",
-      "function locks(uint256) external view returns (uint256 id, address token, address owner, uint256 amount, uint256 unlockTime, bool withdrawn)",
-      "function userLocks(address, uint256) external view returns (uint256)"
+      "event CurveLaunched(address indexed token, address indexed creator, string name, string symbol, string logoURI, uint256 targetBnb)",
+      "event CurveTrade(address indexed token, address indexed trader, bool isBuy, uint256 bnbAmount, uint256 tokenAmount, uint256 virtualBnb, uint256 virtualTokens)"
     ];
 
     const TOKEN_ABI = [
@@ -721,86 +932,166 @@
       "function symbol() external view returns (string)",
       "function decimals() external view returns (uint8)",
       "function totalSupply() external view returns (uint256)",
+      "function balanceOf(address account) external view returns (uint256)",
       "function metadata() external view returns (string logoURI, string website, string twitter, string telegram, string description)",
       "function approve(address spender, uint256 amount) external returns (bool)",
       "function updateMetadata(string logoURI, string website, string twitter, string telegram, string description) external payable"
     ];
 
+    const LOCKER_ABI = [
+      "function lockTokens(address token, uint256 amount, uint256 unlockTime) external payable returns (uint256)",
+      "function unlockTokens(uint256 lockId) external",
+      "function locks(uint256) external view returns (uint256 id, address token, address owner, uint256 amount, uint256 unlockTime, bool withdrawn)"
+    ];
+
     // =========================================================================
-    // APPLICATION STATE & EIP-6963 MOBILE WALLET DISCOVERY
+    // GLOBAL APP & WALLET STATE
     // =========================================================================
     let isSimulation     = false;
     let walletConnected  = false;
     let userAddress      = null;
-    let provider         = null;
     let signer           = null;
-    let simBnbBalance    = 4.25;
-    let injectedProvider = null;
-
+    let activeProvider   = null;
+    let simBnbBalance    = 4.2500;
     let liveCurves       = [];
     let deployedTokens   = [];
     let activeLocks      = [];
+    let activeTokenAddr  = null;
+    let activeTokenData  = null;
+    let activeTrades     = [];
+    let currentTradeSide = 'buy';
 
-    window.addEventListener("eip6963:announceProvider", (event) => {
+    // EIP-6963 Multi-Wallet Discovery
+    const eip6963Providers = [];
+    window.addEventListener('eip6963:announceProvider', (event) => {
       if (event.detail && event.detail.provider) {
-        injectedProvider = event.detail.provider;
+        eip6963Providers.push(event.detail);
       }
     });
-    window.dispatchEvent(new Event("eip6963:requestProvider"));
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
 
-    function getActiveEthereumProvider() {
-      if (injectedProvider) return injectedProvider;
+    function getInjectedEthereum() {
       if (window.ethereum) {
         if (Array.isArray(window.ethereum.providers) && window.ethereum.providers.length > 0) {
-          return window.ethereum.providers.find(p => p.isTrust || p.isTrustWallet || p.isMetaMask) || window.ethereum.providers[0];
+          const preferred = window.ethereum.providers.find(p => p.isTrust || p.isMetaMask || p.isBinance || p.isRabby);
+          return preferred || window.ethereum.providers[0];
         }
         return window.ethereum;
       }
-      if (window.trustwallet && window.trustwallet.ethereum) {
-        return window.trustwallet.ethereum;
-      }
+      if (window.trustwallet && window.trustwallet.ethereum) return window.trustwallet.ethereum;
+      if (window.BinanceChain) return window.BinanceChain;
+      if (eip6963Providers.length > 0) return eip6963Providers[0].provider;
       return null;
     }
 
     // =========================================================================
-    // IMAGE UPLOADER & ON-CHAIN OPTIMIZER (160x160 WEBP/PNG)
+    // TAB NAVIGATION & UI HELPERS
     // =========================================================================
-    function processLogoFile(file, targetInputId, callback) {
-      if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        showStatus("Please select a valid image file (PNG, JPG, WebP, GIF, or SVG).", null, true);
-        return;
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(`view-${tab}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]');
+        btn.classList.add('text-slate-400');
+      });
+      const activeDesk = document.getElementById(`tab-${tab}`);
+      if (activeDesk) {
+        activeDesk.classList.add('bg-[#151820]', 'text-[#3EE8A5]');
+        activeDesk.classList.remove('text-slate-400');
       }
 
-      const statusEl = document.getElementById('c-logo-status');
-      if (statusEl && targetInputId === 'c-logo') {
-        statusEl.innerText = `Optimizing "${file.name}" for on-chain storage...`;
+      document.querySelectorAll('.mnav-tab').forEach(btn => {
+        btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]');
+        btn.classList.add('text-slate-400');
+      });
+      const activeMob = document.getElementById(`mtab-${tab}`);
+      if (activeMob) {
+        activeMob.classList.add('bg-[#151820]', 'text-[#3EE8A5]');
+        activeMob.classList.remove('text-slate-400');
+      }
+
+      if (tab === 'explore') loadOnChainCurves();
+      if (tab === 'factory' || tab === 'logo') loadUserFactoryTokens();
+    }
+
+    function showStatus(msg, txHash = null, isError = false, showMobileLinks = false) {
+      const banner = document.getElementById('status-banner');
+      const icon   = document.getElementById('status-icon');
+      const text   = document.getElementById('status-text');
+      const link   = document.getElementById('status-link');
+      const mobBox = document.getElementById('mobile-deeplinks');
+
+      banner.classList.remove('hidden');
+      text.innerText = msg;
+
+      if (isError) {
+        banner.className = "mb-6 rounded-xl border border-[#FF4747]/40 bg-[#FF4747]/10 p-4 text-xs font-semibold text-[#FF4747] flex flex-col gap-3 transition-all";
+        icon.innerText = "⚠️";
+      } else {
+        banner.className = "mb-6 rounded-xl border border-[#3EE8A5]/40 bg-[#3EE8A5]/10 p-4 text-xs font-semibold text-[#3EE8A5] flex flex-col gap-3 transition-all";
+        icon.innerText = "✅";
+      }
+
+      if (txHash) {
+        link.href = `https://bscscan.com/tx/${txHash}`;
+        link.classList.remove('hidden');
+      } else {
+        link.classList.add('hidden');
+      }
+
+      if (showMobileLinks) {
+        mobBox.classList.remove('hidden');
+        mobBox.classList.add('flex');
+      } else {
+        mobBox.classList.add('hidden');
+        mobBox.classList.remove('flex');
+      }
+    }
+
+    function hideStatus() {
+      document.getElementById('status-banner').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // IMAGE FILE PICKER & ON-CHAIN COMPRESSOR (PNG / JPG / WEBP / GIF / SVG)
+    // =========================================================================
+    function handleLogoDrop(event, targetInputId, callback) {
+      event.preventDefault();
+      event.currentTarget.classList.remove('border-[#3EE8A5]', 'bg-[#3EE8A5]/5');
+      const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (file) processImageFileForOnChain(file, targetInputId, callback);
+    }
+
+    function handleLogoFileSelect(inputEl, targetInputId, callback) {
+      const file = inputEl.files && inputEl.files[0];
+      if (file) processImageFileForOnChain(file, targetInputId, callback);
+    }
+
+    function processImageFileForOnChain(file, targetInputId, callback) {
+      if (!file.type.startsWith('image/')) {
+        showStatus("Please select a valid PNG, JPG, GIF, WebP, or SVG image.", null, true);
+        return;
       }
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        if (file.type === 'image/svg+xml' && file.size <= 16384) {
-          document.getElementById(targetInputId).value = e.target.result;
-          if (statusEl && targetInputId === 'c-logo') {
-            statusEl.innerHTML = `<span class="text-[#3EE8A5] font-bold">✅ Ready: ${file.name} (${(file.size / 1024).toFixed(1)} KB on-chain SVG)</span>`;
-          }
-          if (callback) callback();
-          showStatus(`Logo "${file.name}" loaded and optimized for on-chain storage!`);
-          return;
-        }
-
         const img = new Image();
         img.onload = () => {
-          const size = 144;
           const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
+          const MAX_DIM = 144;
+          let w = img.width;
+          let h = img.height;
+          if (w > h) {
+            if (w > MAX_DIM) { h = Math.round(h * (MAX_DIM / w)); w = MAX_DIM; }
+          } else {
+            if (h > MAX_DIM) { w = Math.round(w * (MAX_DIM / h)); h = MAX_DIM; }
+          }
+          canvas.width = w;
+          canvas.height = h;
           const ctx = canvas.getContext('2d');
-
-          const minDim = Math.min(img.width, img.height);
-          const sx = (img.width - minDim) / 2;
-          const sy = (img.height - minDim) / 2;
-          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+          ctx.drawImage(img, 0, 0, w, h);
 
           let dataUrl = canvas.toDataURL('image/webp', 0.82);
           if (!dataUrl.startsWith('data:image/webp')) {
@@ -808,97 +1099,152 @@
           }
 
           document.getElementById(targetInputId).value = dataUrl;
-          const kb = (dataUrl.length / 1024).toFixed(1);
+          const statusEl = document.getElementById('c-logo-status');
           if (statusEl && targetInputId === 'c-logo') {
-            statusEl.innerHTML = `<span class="text-[#3EE8A5] font-bold">✅ Uploaded: ${file.name} (${kb} KB • Permanent On-Chain)</span>`;
+            const kb = (dataUrl.length / 1024).toFixed(1);
+            statusEl.innerHTML = `<span class="text-[#3EE8A5] font-bold">✓ Ready (${w}×${h}px • ${kb} KB) — Stored permanently on BNB Smart Chain!</span>`;
           }
-          if (callback) callback();
-          showStatus(`Uploaded "${file.name}" (${kb} KB) — ready to store permanently on-chain!`);
+          if (typeof callback === 'function') callback();
+          showStatus(`Image optimized (${(dataUrl.length / 1024).toFixed(1)} KB) for permanent on-chain storage!`);
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    function handleLogoFileSelect(inputEl, targetInputId, callback) {
-      if (inputEl.files && inputEl.files[0]) {
-        processLogoFile(inputEl.files[0], targetInputId, callback);
-      }
-    }
-
-    function handleLogoDrop(event, targetInputId, callback) {
-      event.preventDefault();
-      const dz = document.getElementById('c-dropzone');
-      if (dz) dz.classList.remove('border-[#3EE8A5]', 'bg-[#3EE8A5]/5');
-      if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
-        processLogoFile(event.dataTransfer.files[0], targetInputId, callback);
-      }
-    }
-
     // =========================================================================
-    // TAB NAVIGATION & UI HELPERS
+    // WALLET CONNECTION, MOBILE BSC SWITCHER & DISCONNECT
     // =========================================================================
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
-      const activeView = document.getElementById('view-' + tabId);
-      if (activeView) activeView.classList.remove('hidden');
+    async function ensureBscChain(eth) {
+      let currentChainId = await eth.request({ method: 'eth_chainId' });
+      if (currentChainId === '0x38' || parseInt(currentChainId, 16) === 56) return true;
 
-      document.querySelectorAll('.nav-tab').forEach(btn => {
-        btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]');
-        btn.classList.add('text-slate-400');
-      });
-      const activeBtn = document.getElementById('tab-' + tabId);
-      if (activeBtn) {
-        activeBtn.classList.add('bg-[#151820]', 'text-[#3EE8A5]');
-        activeBtn.classList.remove('text-slate-400');
-      }
-
-      document.querySelectorAll('.mnav-tab').forEach(btn => {
-        btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]');
-        btn.classList.add('text-slate-400');
-      });
-      const mActiveBtn = document.getElementById('mtab-' + tabId);
-      if (mActiveBtn) {
-        mActiveBtn.classList.add('bg-[#151820]', 'text-[#3EE8A5]');
-        mActiveBtn.classList.remove('text-slate-400');
-      }
-    }
-
-    function showStatus(msg, txHash = null, isError = false, showDeepLinks = false) {
-      const banner   = document.getElementById('status-banner');
-      const icon     = document.getElementById('status-icon');
-      const text     = document.getElementById('status-text');
-      const link     = document.getElementById('status-link');
-      const linksBox = document.getElementById('mobile-deeplinks');
-
-      banner.classList.remove('hidden', 'border-[#3EE8A5]/40', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]', 'border-[#FF4747]/40', 'bg-[#FF4747]/10', 'text-[#FF4747]');
-      if (isError) {
-        banner.classList.add('border-[#FF4747]/40', 'bg-[#FF4747]/10', 'text-[#FF4747]');
-        icon.innerText = '⚠️';
-      } else {
-        banner.classList.add('border-[#3EE8A5]/40', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]');
-        icon.innerText = '✅';
-      }
-
-      text.innerText = msg;
-      if (txHash && txHash.startsWith('0x')) {
-        link.href = `https://bscscan.com/tx/${txHash}`;
-        link.classList.remove('hidden');
-      } else {
-        link.classList.add('hidden');
-      }
-
-      if (showDeepLinks) {
-        linksBox.classList.remove('hidden');
-        linksBox.classList.add('flex');
-      } else {
-        linksBox.classList.add('hidden');
-        linksBox.classList.remove('flex');
+      try {
+        await eth.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x38' }],
+        });
+        return true;
+      } catch (switchErr) {
+        try {
+          await eth.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x38',
+              chainName: 'BNB Smart Chain',
+              nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+              rpcUrls: ['https://bsc-dataseed.binance.org/'],
+              blockExplorerUrls: ['https://bscscan.com']
+            }]
+          });
+          return true;
+        } catch (addErr) {
+          const checkAgain = await eth.request({ method: 'eth_chainId' });
+          if (checkAgain === '0x38' || parseInt(checkAgain, 16) === 56) return true;
+          throw new Error("Trust Wallet Mobile: Tap top-right (•••) → 'EVM Network' → 'BNB Smart Chain' (or add Custom Network RPC https://bsc-dataseed.binance.org/), then tap Connect Wallet.");
+        }
       }
     }
 
-    function hideStatus() {
-      document.getElementById('status-banner').classList.add('hidden');
+    async function handleWalletClick() {
+      if (isSimulation) {
+        walletConnected = true;
+        userAddress = "0x71C9...9A4E";
+        updateWalletUI();
+        showStatus("Connected to Instant Preview Sandbox (4.2500 BNB virtual balance).");
+        return;
+      }
+
+      const eth = getInjectedEthereum();
+      if (!eth) {
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        showStatus(
+          isMobile
+            ? "No injected Web3 wallet in this mobile browser. Open mintmelt.fun inside your wallet browser below:"
+            : "No Web3 wallet extension detected! Install MetaMask, Rabby, or Trust Wallet.",
+          null,
+          true,
+          isMobile
+        );
+        return;
+      }
+
+      try {
+        const accounts = await eth.request({ method: 'eth_requestAccounts' });
+        if (!accounts || !accounts.length) return;
+
+        await ensureBscChain(eth);
+
+        activeProvider = new ethers.BrowserProvider(eth);
+        signer = await activeProvider.getSigner();
+        userAddress = await signer.getAddress();
+        walletConnected = true;
+
+        updateWalletUI();
+        await refreshBalance();
+        await loadOnChainData();
+        showStatus(`Connected to BNB Smart Chain Mainnet (${userAddress.slice(0, 6)}...${userAddress.slice(-4)})`);
+
+        if (eth.on) {
+          eth.on('accountsChanged', (accs) => {
+            if (!accs || accs.length === 0) disconnectWallet();
+            else handleWalletClick();
+          });
+          eth.on('chainChanged', () => window.location.reload());
+        }
+      } catch (err) {
+        showStatus(err.message || "Wallet connection failed", null, true);
+      }
+    }
+
+    function disconnectWallet() {
+      walletConnected = false;
+      userAddress = null;
+      signer = null;
+      activeProvider = null;
+
+      const btn = document.getElementById('connect-btn');
+      btn.innerText = "Connect Wallet";
+      btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]', 'border', 'border-[#3EE8A5]/40');
+      btn.classList.add('mint-btn', 'text-[#0B0D10]');
+
+      document.getElementById('disconnect-btn').classList.add('hidden');
+      document.getElementById('disconnect-btn').classList.remove('flex');
+      document.getElementById('wallet-balance-box').classList.add('hidden');
+      document.getElementById('wallet-balance-box').classList.remove('flex');
+
+      showStatus("Wallet disconnected.");
+    }
+
+    function updateWalletUI() {
+      const btn = document.getElementById('connect-btn');
+      const short = userAddress.length > 12 ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}` : userAddress;
+      btn.innerText = short;
+      btn.classList.remove('mint-btn', 'text-[#0B0D10]');
+      btn.classList.add('bg-[#151820]', 'text-[#3EE8A5]', 'border', 'border-[#3EE8A5]/40');
+
+      const discBtn = document.getElementById('disconnect-btn');
+      discBtn.classList.remove('hidden');
+      discBtn.classList.add('flex');
+
+      const balBox = document.getElementById('wallet-balance-box');
+      balBox.classList.remove('hidden');
+      balBox.classList.add('flex');
+      if (isSimulation) {
+        document.getElementById('wallet-bnb').innerText = simBnbBalance.toFixed(4);
+      }
+    }
+
+    async function refreshBalance() {
+      if (isSimulation) {
+        document.getElementById('wallet-bnb').innerText = simBnbBalance.toFixed(4);
+        return;
+      }
+      if (!activeProvider || !userAddress) return;
+      try {
+        const bal = await activeProvider.getBalance(userAddress);
+        document.getElementById('wallet-bnb').innerText = parseFloat(ethers.formatEther(bal)).toFixed(4);
+      } catch (_) {}
     }
 
     function toggleSimulationMode() {
@@ -907,167 +1253,22 @@
       const dot   = document.getElementById('net-dot');
       const label = document.getElementById('net-label');
       if (isSimulation) {
-        pill.classList.remove('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]', 'hover:bg-[#F0B90B]/20');
-        pill.classList.add('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]', 'hover:bg-[#3EE8A5]/20');
+        pill.classList.remove('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]');
+        pill.classList.add('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]');
         dot.classList.replace('bg-[#F0B90B]', 'bg-[#3EE8A5]');
         label.innerText = "Preview Sandbox";
-        showStatus("Switched to Preview Sandbox Mode (test UI flows with zero gas).");
+        showStatus("Switched to Preview Sandbox Mode (Test all tabs with zero gas).");
       } else {
-        pill.classList.remove('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]', 'hover:bg-[#3EE8A5]/20');
-        pill.classList.add('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]', 'hover:bg-[#F0B90B]/20');
+        pill.classList.remove('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]');
+        pill.classList.add('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]');
         dot.classList.replace('bg-[#3EE8A5]', 'bg-[#F0B90B]');
         label.innerText = "BSC Mainnet RPC";
         showStatus("Switched to Live BSC Mainnet Web3 Mode.");
-        loadOnChainCurves();
       }
     }
 
     // =========================================================================
-    // WALLET CONNECTION & DISCONNECT (TRUST WALLET MOBILE + METAMASK + PHANTOM)
-    // =========================================================================
-    function isBscChainId(chainIdVal) {
-      if (!chainIdVal) return false;
-      const str = String(chainIdVal).toLowerCase();
-      return str === "0x38" || str === "56" || parseInt(str, 16) === 56 || Number(str) === 56;
-    }
-
-    async function ensureBscChain(eth) {
-      let currentChain = await eth.request({ method: "eth_chainId" });
-      if (isBscChainId(currentChain)) return true;
-
-      for (const cid of ["0x38", "56"]) {
-        try {
-          await eth.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: cid }]
-          });
-          currentChain = await eth.request({ method: "eth_chainId" });
-          if (isBscChainId(currentChain)) return true;
-        } catch (_) {}
-      }
-
-      try {
-        await eth.request({
-          method: "wallet_addEthereumChain",
-          params: [{
-            chainId: "0x38",
-            chainName: "BNB Smart Chain",
-            nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
-            rpcUrls: ["https://bsc-dataseed.binance.org/"],
-            blockExplorerUrls: ["https://bscscan.com"]
-          }]
-        });
-      } catch (_) {}
-
-      currentChain = await eth.request({ method: "eth_chainId" });
-      if (isBscChainId(currentChain)) return true;
-
-      throw new Error("Trust Wallet Mobile: Tap the top-right (•••) menu in this browser → select 'EVM Network' → choose 'BNB Smart Chain', then tap Connect Wallet.");
-    }
-
-    async function handleWalletClick() {
-      if (isSimulation) {
-        walletConnected = true;
-        userAddress = "0x71C...9A4E";
-        document.getElementById('connect-btn').innerText = userAddress;
-        document.getElementById('wallet-balance-box').classList.remove('hidden');
-        document.getElementById('wallet-balance-box').classList.add('flex');
-        document.getElementById('disconnect-btn').classList.remove('hidden');
-        document.getElementById('disconnect-btn').classList.add('flex');
-        document.getElementById('wallet-bnb').innerText = simBnbBalance.toFixed(4);
-        showStatus("Connected to Preview Sandbox Wallet.");
-        return;
-      }
-
-      const eth = getActiveEthereumProvider();
-      if (!eth) {
-        showStatus("Mobile browser detected: Tap below to open MintMelt directly inside your crypto wallet app:", null, true, true);
-        return;
-      }
-
-      try {
-        await eth.request({ method: "eth_requestAccounts" });
-        await ensureBscChain(eth);
-
-        if (eth.on && !eth._mintMeltListenersAttached) {
-          eth._mintMeltListenersAttached = true;
-          eth.on("chainChanged", () => handleWalletClick());
-          eth.on("accountsChanged", (accs) => {
-            if (!accs || accs.length === 0) disconnectWallet();
-            else handleWalletClick();
-          });
-        }
-
-        provider = new ethers.BrowserProvider(eth);
-        signer = await provider.getSigner();
-        userAddress = await signer.getAddress();
-        walletConnected = true;
-
-        const bal = await provider.getBalance(userAddress);
-        const formattedBal = Number(ethers.formatEther(bal)).toFixed(4);
-
-        const shortAddr = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
-        document.getElementById('connect-btn').innerText = shortAddr;
-        document.getElementById('wallet-balance-box').classList.remove('hidden');
-        document.getElementById('wallet-balance-box').classList.add('flex');
-        document.getElementById('disconnect-btn').classList.remove('hidden');
-        document.getElementById('disconnect-btn').classList.add('flex');
-        document.getElementById('wallet-bnb').innerText = formattedBal;
-
-        showStatus(`Connected to BNB Smart Chain (${shortAddr})`);
-        loadOnChainData();
-      } catch (err) {
-        const msg = (err && err.message && err.message.includes("Trust Wallet Mobile"))
-          ? err.message
-          : (err.reason || err.message || "Wallet connection failed");
-        showStatus(msg, null, true);
-      }
-    }
-
-    async function disconnectWallet() {
-      const eth = getActiveEthereumProvider();
-      if (eth && eth.request) {
-        try {
-          await eth.request({
-            method: "wallet_revokePermissions",
-            params: [{ eth_accounts: {} }]
-          });
-        } catch (_) {}
-      }
-
-      walletConnected = false;
-      userAddress     = null;
-      provider        = null;
-      signer          = null;
-      deployedTokens  = [];
-      activeLocks     = [];
-
-      document.getElementById('connect-btn').innerText = "Connect Wallet";
-      document.getElementById('wallet-balance-box').classList.add('hidden');
-      document.getElementById('wallet-balance-box').classList.remove('flex');
-      document.getElementById('disconnect-btn').classList.add('hidden');
-      document.getElementById('disconnect-btn').classList.remove('flex');
-      document.getElementById('wallet-bnb').innerText = "0.0000";
-
-      renderStandardTokens();
-      renderLocks();
-      populateMetadataSelect();
-      showStatus("Wallet disconnected.");
-    }
-
-    async function refreshBalance() {
-      if (isSimulation) {
-        document.getElementById('wallet-bnb').innerText = simBnbBalance.toFixed(4);
-        return;
-      }
-      if (provider && userAddress) {
-        const bal = await provider.getBalance(userAddress);
-        document.getElementById('wallet-bnb').innerText = Number(ethers.formatEther(bal)).toFixed(4);
-      }
-    }
-
-    // =========================================================================
-    // BONDING CURVE PREVIEW & DEPLOYMENT
+    // BONDING CURVE LAUNCHPAD LOGIC
     // =========================================================================
     function setCurvePresetLogo(url) {
       document.getElementById('c-logo').value = url;
@@ -1076,59 +1277,60 @@
 
     function syncCurvePreview() {
       const name   = document.getElementById('c-name').value.trim() || "Your Token Name";
-      const sym    = (document.getElementById('c-symbol').value.trim() || "TICKER").toUpperCase();
-      const logo   = document.getElementById('c-logo').value.trim();
+      const symbol = (document.getElementById('c-symbol').value.trim() || "TICKER").toUpperCase();
+      const logo   = document.getElementById('c-logo').value.trim() || `https://placehold.co/100x100/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0, 4))}`;
       const desc   = document.getElementById('c-desc').value.trim() || "Fair-launch bonding curve with instant PancakeSwap migration.";
       const target = Math.max(1, parseFloat(document.getElementById('c-target').value) || 18);
       const devBuy = Math.max(0, parseFloat(document.getElementById('c-devbuy').value) || 0);
 
-      document.getElementById('prev-name').innerText   = name;
-      document.getElementById('prev-symbol').innerText = `$${sym}`;
-      document.getElementById('prev-desc').innerText   = desc;
-      if (logo) document.getElementById('prev-img').src = logo;
+      document.getElementById('prev-name').innerText = name;
+      document.getElementById('prev-symbol').innerText = `$${symbol}`;
+      document.getElementById('prev-img').src = logo;
+      document.getElementById('prev-desc').innerText = desc;
 
       const pct = Math.min(100, (devBuy / target) * 100);
       document.getElementById('prev-progress-text').innerText = `${devBuy.toFixed(2)} / ${target} BNB (${pct.toFixed(1)}%)`;
-      document.getElementById('prev-progress-bar').style.width = `${Math.max(1, pct)}%`;
+      document.getElementById('prev-progress-bar').style.width = `${Math.max(1.5, pct)}%`;
 
+      const total = 0.005 + devBuy;
       document.getElementById('prev-devbuy').innerText = `${devBuy.toFixed(4)} BNB`;
-      document.getElementById('prev-total').innerText  = `${(0.005 + devBuy).toFixed(4)} BNB`;
+      document.getElementById('prev-total').innerText = `${total.toFixed(4)} BNB`;
     }
 
     async function deployCurve() {
       const name   = document.getElementById('c-name').value.trim();
       const symbol = document.getElementById('c-symbol').value.trim().toUpperCase();
+      const logo   = document.getElementById('c-logo').value.trim() || `https://placehold.co/120x120/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0, 4) || 'M')}`;
+      const desc   = document.getElementById('c-desc').value.trim();
+      const web    = document.getElementById('c-web').value.trim();
+      const x      = document.getElementById('c-x').value.trim();
+      const tg     = document.getElementById('c-tg').value.trim();
+      const target = Math.max(1, parseFloat(document.getElementById('c-target').value) || 18);
+      const devBuy = Math.max(0, parseFloat(document.getElementById('c-devbuy').value) || 0);
+      const burnLp = document.getElementById('c-burnlp').checked;
+
       if (!name || !symbol) {
-        showStatus("Please enter both Token Name and Ticker Symbol.", null, true);
+        showStatus("Please enter a Token Name and Ticker Symbol.", null, true);
         return;
       }
 
-      const logoURI = document.getElementById('c-logo').value.trim() || `https://placehold.co/120x120/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0, 4))}`;
-      const desc    = document.getElementById('c-desc').value.trim();
-      const web     = document.getElementById('c-web').value.trim();
-      const x       = document.getElementById('c-x').value.trim();
-      const tg      = document.getElementById('c-tg').value.trim();
-      const target  = Math.max(1, parseFloat(document.getElementById('c-target').value) || 18);
-      const devBuy  = Math.max(0, parseFloat(document.getElementById('c-devbuy').value) || 0);
-      const burnLp  = document.getElementById('c-burnlp').checked;
-
       if (isSimulation) {
-        const fakeAddr = "0x" + Math.random().toString(16).slice(2, 10) + "..." + Math.random().toString(16).slice(2, 6);
+        const fakeAddr = "0x" + Math.random().toString(16).slice(2, 10).padEnd(40, "c");
         liveCurves.unshift({
           token: fakeAddr,
           name,
           symbol,
-          logoURI,
-          description: desc || "Fair-launch bonding curve on MintMelt.",
-          realBnbRaised: devBuy,
+          logoURI: logo,
+          description: desc || "Fair-launch bonding curve token on MintMelt.",
+          realBnbRaised: devBuy * 0.99,
           targetBnb: target,
-          graduated: devBuy >= target
+          graduated: false
         });
         simBnbBalance = Math.max(0, simBnbBalance - (0.005 + devBuy));
         refreshBalance();
         renderLiveCurves();
+        openTokenTerminal(fakeAddr);
         showStatus(`Sandbox: Launched ${name} ($${symbol}) on MintMelt Curve!`);
-        switchTab('explore');
         return;
       }
 
@@ -1138,17 +1340,16 @@
       }
 
       try {
-        showStatus("Confirm bonding curve launch in your wallet...");
+        showStatus("Confirm Bonding Curve Launch in your wallet...");
         const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer);
-        const totalPayable = ethers.parseEther((0.005 + devBuy).toFixed(6));
-        const targetWei = ethers.parseEther(target.toString());
+        const supply = ethers.parseEther("1000000000");
 
         const cfg = {
           name,
           symbol,
           decimals: 18,
-          initialSupply: 0n,
-          maxSupply: 0n,
+          initialSupply: supply,
+          maxSupply: supply,
           mintable: false,
           burnable: true,
           pausable: false,
@@ -1158,36 +1359,53 @@
           maxTxAmount: 0n,
           maxWalletAmount: 0n,
           taxWallet: userAddress,
-          router: ethers.ZeroAddress,
+          router: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
           creator: userAddress,
           controller: LAUNCHPAD_ADDRESS,
           isCurveLaunch: true
         };
+        const meta = { logoURI: logo, website: web, twitter: x, telegram: tg, description: desc };
+        const totalPayable = ethers.parseEther((0.005 + devBuy).toFixed(6));
 
-        const meta = { logoURI, website: web, twitter: x, telegram: tg, description: desc };
-        const tx = await launchpad.launchCurve(cfg, meta, targetWei, burnLp, { value: totalPayable });
-        showStatus("Transaction submitted! Waiting for BSC confirmation...", tx.hash);
-        await tx.wait();
+        const tx = await launchpad.launchCurve(cfg, meta, ethers.parseEther(target.toString()), burnLp, { value: totalPayable });
+        showStatus("Deploying token & bonding curve on BSC Mainnet...", tx.hash);
+        const receipt = await tx.wait();
+
+        let launchedToken = null;
+        for (const log of receipt.logs) {
+          try {
+            const parsed = launchpad.interface.parseLog(log);
+            if (parsed && parsed.name === "CurveLaunched") {
+              launchedToken = parsed.args.token;
+              break;
+            }
+          } catch (_) {}
+        }
+
         await refreshBalance();
         await loadOnChainCurves();
-        showStatus(`🎉 ${name} ($${symbol}) is LIVE on MintMelt Bonding Curve!`, tx.hash);
-        switchTab('explore');
+        if (launchedToken) {
+          await openTokenTerminal(launchedToken);
+        } else {
+          switchTab('explore');
+        }
+        showStatus(`🚀 ${name} ($${symbol}) is LIVE on MintMelt Curve!`, tx.hash);
       } catch (err) {
         showStatus(err.reason || err.shortMessage || err.message || "Curve launch failed", null, true);
       }
     }
 
     // =========================================================================
-    // MODULAR TOKEN FACTORY PRICING & DEPLOYMENT (MintMeltFactoryV2)
+    // MODULAR STANDARD BEP-20 TOKEN FACTORY (MintMeltFactoryV2)
     // =========================================================================
     function updateFactoryPrice() {
-      const buyTax   = parseInt(document.getElementById('f-buytax').value) || 0;
-      const sellTax  = parseInt(document.getElementById('f-selltax').value) || 0;
-      const maxWal   = parseFloat(document.getElementById('f-maxwal').value) || 0;
-      const maxTx    = parseFloat(document.getElementById('f-maxtx').value) || 0;
-      const mintable = document.getElementById('f-mint').checked;
-      const pausable = document.getElementById('f-pause').checked;
-      const black    = document.getElementById('f-black').checked;
+      const buyTax  = parseInt(document.getElementById('f-buytax').value) || 0;
+      const sellTax = parseInt(document.getElementById('f-selltax').value) || 0;
+      const maxWal  = parseFloat(document.getElementById('f-maxwal').value) || 0;
+      const maxTx   = parseFloat(document.getElementById('f-maxtx').value) || 0;
+      const isMint  = document.getElementById('f-mint').checked;
+      const isPause = document.getElementById('f-pause').checked;
+      const isBlack = document.getElementById('f-black').checked;
 
       let total = 0.005;
       const addons = [];
@@ -1195,84 +1413,72 @@
       const taxBadge = document.getElementById('badge-tax-fee');
       if (buyTax > 0 || sellTax > 0) {
         total += 0.015;
-        addons.push({ label: `Auto-Swap Taxes (${buyTax}% Buy / ${sellTax}% Sell)`, fee: "0.0150 BNB" });
+        addons.push(["Auto-Swap Buy/Sell Tax Module", "+0.0150 BNB"]);
         taxBadge.className = "rounded bg-[#3EE8A5]/20 px-2 py-0.5 font-mono text-[11px] font-bold text-[#3EE8A5]";
-        taxBadge.innerText = "+0.015 BNB ACTIVE";
+        taxBadge.innerText = "ACTIVE (+0.015 BNB)";
       } else {
         taxBadge.className = "rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-400";
         taxBadge.innerText = "+0.015 BNB if > 0%";
       }
 
-      const limitsBadge = document.getElementById('badge-limits-fee');
+      const limBadge = document.getElementById('badge-limits-fee');
       if (maxWal > 0 || maxTx > 0) {
         total += 0.010;
-        addons.push({ label: `Anti-Whale Limits (Wallet ${maxWal || '∞'}% / Tx ${maxTx || '∞'}%)`, fee: "0.0100 BNB" });
-        limitsBadge.className = "rounded bg-[#3EE8A5]/20 px-2 py-0.5 font-mono text-[11px] font-bold text-[#3EE8A5]";
-        limitsBadge.innerText = "+0.010 BNB ACTIVE";
+        addons.push(["Anti-Whale Max Wallet / Max Tx Limits", "+0.0100 BNB"]);
+        limBadge.className = "rounded bg-[#3EE8A5]/20 px-2 py-0.5 font-mono text-[11px] font-bold text-[#3EE8A5]";
+        limBadge.innerText = "ACTIVE (+0.010 BNB)";
       } else {
-        limitsBadge.className = "rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-400";
-        limitsBadge.innerText = "+0.010 BNB if enabled";
+        limBadge.className = "rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-400";
+        limBadge.innerText = "+0.010 BNB if enabled";
       }
 
-      if (mintable) {
-        total += 0.010;
-        addons.push({ label: "Mintable Supply Module", fee: "0.0100 BNB" });
-      }
-      if (pausable) {
-        total += 0.005;
-        addons.push({ label: "Pausable Trading Guard", fee: "0.0050 BNB" });
-      }
-      if (black) {
-        total += 0.010;
-        addons.push({ label: "Anti-Bot Blacklist Control", fee: "0.0100 BNB" });
-      }
+      if (isMint)  { total += 0.010; addons.push(["Owner Minting Capability", "+0.0100 BNB"]); }
+      if (isPause) { total += 0.005; addons.push(["Emergency Transfer Pause", "+0.0050 BNB"]); }
+      if (isBlack) { total += 0.010; addons.push(["Anti-Bot Blacklist Control", "+0.0100 BNB"]); }
 
-      const breakdownEl = document.getElementById('f-breakdown-addons');
-      breakdownEl.innerHTML = addons.map(a => `
-        <div class="flex justify-between text-[#3EE8A5]">
-          <span>+ ${a.label}</span>
-          <span class="font-mono font-bold">+${a.fee}</span>
+      document.getElementById('f-breakdown-addons').innerHTML = addons.map(([label, fee]) => `
+        <div class="flex justify-between">
+          <span>+ ${label}</span>
+          <span class="font-mono font-bold text-[#3EE8A5]">${fee}</span>
         </div>
       `).join('');
 
+      const fmt = total.toFixed(4);
       document.getElementById('factory-header-fee').innerText = `${total.toFixed(3)} BNB`;
-      document.getElementById('f-total-fee-display').innerText = `${total.toFixed(4)} BNB`;
+      document.getElementById('f-total-fee-display').innerText = `${fmt} BNB`;
       document.getElementById('btn-deploy-standard').innerText = `⚡ Deploy Standard BEP-20 Token (${total.toFixed(3)} BNB)`;
-
       return total;
     }
 
     async function deployStandard() {
-      const name   = document.getElementById('f-name').value.trim();
-      const symbol = document.getElementById('f-symbol').value.trim().toUpperCase();
-      if (!name || !symbol) {
-        showStatus("Please enter Token Name and Ticker Symbol.", null, true);
-        return;
-      }
-
-      const supplyNum = Math.max(1, parseFloat(document.getElementById('f-supply').value) || 1000000000);
-      const decimals  = Math.min(18, Math.max(6, parseInt(document.getElementById('f-decimals').value) || 18));
-      const logoURI   = document.getElementById('f-logo').value.trim() || `https://placehold.co/120x120/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0, 4))}`;
-      const web       = document.getElementById('f-web').value.trim();
-      const x         = document.getElementById('f-x').value.trim();
-      const tg        = document.getElementById('f-tg').value.trim();
-
-      const buyTaxBps  = (parseInt(document.getElementById('f-buytax').value) || 0) * 100;
-      const sellTaxBps = (parseInt(document.getElementById('f-selltax').value) || 0) * 100;
-      const maxWalPct  = parseFloat(document.getElementById('f-maxwal').value) || 0;
-      const maxTxPct   = parseFloat(document.getElementById('f-maxtx').value) || 0;
-      const taxWalRaw  = document.getElementById('f-taxwal').value.trim();
-
+      const name     = document.getElementById('f-name').value.trim();
+      const symbol   = document.getElementById('f-symbol').value.trim().toUpperCase();
+      const supplyN  = document.getElementById('f-supply').value.trim() || "1000000000";
+      const decimals = Math.min(18, Math.max(6, parseInt(document.getElementById('f-decimals').value) || 18));
+      const logo     = document.getElementById('f-logo').value.trim() || `https://placehold.co/100x100/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0, 4) || 'T')}`;
+      const web      = document.getElementById('f-web').value.trim();
+      const x        = document.getElementById('f-x').value.trim();
+      const tg       = document.getElementById('f-tg').value.trim();
+      const buyTax   = parseInt(document.getElementById('f-buytax').value) || 0;
+      const sellTax  = parseInt(document.getElementById('f-selltax').value) || 0;
+      const maxWalP  = parseFloat(document.getElementById('f-maxwal').value) || 0;
+      const maxTxP   = parseFloat(document.getElementById('f-maxtx').value) || 0;
+      const taxWal   = document.getElementById('f-taxwal').value.trim();
       const burnable = document.getElementById('f-burn').checked;
       const mintable = document.getElementById('f-mint').checked;
       const pausable = document.getElementById('f-pause').checked;
       const black    = document.getElementById('f-black').checked;
 
+      if (!name || !symbol) {
+        showStatus("Please enter Token Name and Ticker Symbol.", null, true);
+        return;
+      }
+
       const feeBnb = updateFactoryPrice();
 
       if (isSimulation) {
-        const fakeAddr = "0x" + Math.random().toString(16).slice(2, 10) + "..." + Math.random().toString(16).slice(2, 6);
-        deployedTokens.unshift({ address: fakeAddr, name, symbol, supply: supplyNum, logoURI });
+        const fakeAddr = "0x" + Math.random().toString(16).slice(2, 10).padEnd(40, "f");
+        deployedTokens.unshift({ address: fakeAddr, name, symbol, logoURI: logo });
         simBnbBalance = Math.max(0, simBnbBalance - feeBnb);
         refreshBalance();
         renderStandardTokens();
@@ -1287,12 +1493,11 @@
       }
 
       try {
-        showStatus("Confirm Token Factory deployment in your wallet...");
+        showStatus(`Confirm ${feeBnb.toFixed(3)} BNB Token Factory deployment in your wallet...`);
         const factory = new ethers.Contract(FACTORY_ADDRESS, FACTORY_ABI, signer);
-        const totalSupplyWei = ethers.parseUnits(supplyNum.toString(), decimals);
-        const maxTxWei     = maxTxPct > 0 ? (totalSupplyWei * BigInt(Math.round(maxTxPct * 100))) / 10000n : 0n;
-        const maxWalletWei = maxWalPct > 0 ? (totalSupplyWei * BigInt(Math.round(maxWalPct * 100))) / 10000n : 0n;
-        const taxWallet    = ethers.isAddress(taxWalRaw) ? taxWalRaw : userAddress;
+        const totalSupplyWei = ethers.parseUnits(supplyN, decimals);
+        const maxTxWei  = maxTxP > 0 ? (totalSupplyWei * BigInt(Math.round(maxTxP * 100))) / 10000n : 0n;
+        const maxWalWei = maxWalP > 0 ? (totalSupplyWei * BigInt(Math.round(maxWalP * 100))) / 10000n : 0n;
 
         const cfg = {
           name,
@@ -1304,95 +1509,90 @@
           burnable,
           pausable,
           blacklistEnabled: black,
-          buyTaxBps,
-          sellTaxBps,
+          buyTaxBps: buyTax * 100,
+          sellTaxBps: sellTax * 100,
           maxTxAmount: maxTxWei,
-          maxWalletAmount: maxWalletWei,
-          taxWallet,
-          router: ethers.ZeroAddress,
+          maxWalletAmount: maxWalWei,
+          taxWallet: ethers.isAddress(taxWal) ? taxWal : userAddress,
+          router: "0x10ED43C718714eb63d5aA57B78B54704E256024E",
           creator: userAddress,
           controller: FACTORY_ADDRESS,
           isCurveLaunch: false
         };
+        const meta = { logoURI: logo, website: web, twitter: x, telegram: tg, description: `${name} ($${symbol}) BEP-20 deployed via MintMelt.` };
 
-        const meta = { logoURI, website: web, twitter: x, telegram: tg, description: "" };
-        const requiredFeeWei = await factory.calculateFee(cfg);
-
-        const tx = await factory.createToken(cfg, meta, { value: requiredFeeWei });
-        showStatus("Deploying verified BEP-20 clone on BSC...", tx.hash);
+        const onChainFee = await factory.calculateFee(cfg);
+        const tx = await factory.createToken(cfg, meta, { value: onChainFee });
+        showStatus("Deploying your custom BEP-20 on BSC Mainnet...", tx.hash);
         await tx.wait();
+
         await refreshBalance();
         await loadUserFactoryTokens();
-        showStatus(`🎉 ${name} ($${symbol}) minted to your wallet!`, tx.hash);
+        showStatus(`⚡ ${name} ($${symbol}) deployed directly to your wallet!`, tx.hash);
       } catch (err) {
         showStatus(err.reason || err.shortMessage || err.message || "Factory deployment failed", null, true);
       }
     }
 
     function renderStandardTokens() {
-      const container = document.getElementById('standard-tokens-list');
+      const list = document.getElementById('standard-tokens-list');
       if (!deployedTokens.length) {
-        container.innerHTML = `<div class="rounded-xl border border-white/[0.06] bg-[#151820] p-4 text-center text-xs text-slate-400">No tokens deployed from this wallet yet. Deploy one above!</div>`;
+        list.innerHTML = `<div class="rounded-xl border border-white/[0.06] bg-[#151820] p-4 text-center text-xs text-slate-400">No custom factory tokens deployed yet with this wallet.</div>`;
         return;
       }
-      container.innerHTML = deployedTokens.map(t => `
+      list.innerHTML = deployedTokens.map(t => `
         <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#151820] p-3.5">
           <div class="flex items-center gap-3">
-            <img src="${t.logoURI}" onerror="this.src='https://placehold.co/80x80/0B0D10/3EE8A5?text=M'" class="h-10 w-10 rounded-xl border border-white/10 object-cover bg-[#0B0D10]" />
+            <img src="${t.logoURI}" onerror="this.src='https://placehold.co/80x80/0B0D10/3EE8A5?text=M'" class="h-10 w-10 rounded-xl object-cover bg-[#0B0D10]" />
             <div>
-              <div class="text-sm font-extrabold text-white">${t.name} <span class="font-mono text-xs text-[#3EE8A5]">$${t.symbol}</span></div>
+              <div class="text-xs font-extrabold text-white">${t.name} <span class="font-mono text-[#3EE8A5]">$${t.symbol}</span></div>
               <div class="font-mono text-[11px] text-slate-400">${t.address}</div>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="quickEditLogo('${t.address}')" class="rounded-lg border border-[#3EE8A5]/30 bg-[#3EE8A5]/10 px-3 py-1.5 text-xs font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">Edit Logo</button>
-            <a href="https://bscscan.com/token/${t.address}" target="_blank" class="rounded-lg border border-white/10 bg-[#050608] px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white">BscScan ↗</a>
+            <a href="https://bscscan.com/token/${t.address}" target="_blank" class="rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-bold text-slate-300 hover:text-white">BscScan ↗</a>
+            <button type="button" onclick="selectTokenForMetaEdit('${t.address}'); switchTab('logo');" class="rounded-lg bg-[#3EE8A5]/15 px-2.5 py-1.5 text-[11px] font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10]">Edit Logo</button>
           </div>
         </div>
       `).join('');
     }
 
-    function quickEditLogo(addr) {
-      document.getElementById('u-token').value = addr;
-      switchTab('logo');
-    }
-
     // =========================================================================
-    // LIVE CURVES FEED & ON-CHAIN BUYING
+    // LIVE CURVES FEED LOADER & RENDERER
     // =========================================================================
     async function loadOnChainCurves() {
       if (isSimulation) {
         renderLiveCurves();
         return;
       }
-
       try {
         const readProvider = new ethers.JsonRpcProvider(BSC_RPC);
         const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, readProvider);
         const count = Number(await launchpad.getAllLaunchesCount());
         document.getElementById('live-curve-count').innerText = count;
 
-        const fetched = [];
-        const start = Math.max(0, count - 12);
+        const loaded = [];
+        const start = Math.max(0, count - 18);
         for (let i = count - 1; i >= start; i--) {
           const tokenAddr = await launchpad.allLaunches(i);
           const c = await launchpad.curves(tokenAddr);
           const tok = new ethers.Contract(tokenAddr, TOKEN_ABI, readProvider);
           const [name, symbol, meta] = await Promise.all([tok.name(), tok.symbol(), tok.metadata()]);
-          fetched.push({
+          loaded.push({
             token: tokenAddr,
             name,
             symbol,
-            logoURI: meta.logoURI || `https://placehold.co/100x100/0B0D10/3EE8A5?text=${symbol}`,
-            description: meta.description || "MintMelt fair-launch bonding curve.",
-            realBnbRaised: Number(ethers.formatEther(c.realBnbRaised)),
-            targetBnb: Number(ethers.formatEther(c.targetBnb)),
+            logoURI: meta.logoURI || `https://placehold.co/100x100/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0, 4))}`,
+            description: meta.description || "MintMelt fair-launch bonding curve token.",
+            realBnbRaised: parseFloat(ethers.formatEther(c.realBnbRaised)),
+            targetBnb: parseFloat(ethers.formatEther(c.targetBnb)),
             graduated: c.graduated
           });
         }
-        liveCurves = fetched;
+        liveCurves = loaded;
         renderLiveCurves();
-      } catch (_) {
+        populateMetadataSelect();
+      } catch (err) {
         renderLiveCurves();
       }
     }
@@ -1415,7 +1615,7 @@
       grid.innerHTML = liveCurves.map(c => {
         const pct = Math.min(100, (c.realBnbRaised / Math.max(1, c.targetBnb)) * 100);
         return `
-          <div class="obsidian-card rounded-2xl p-5 flex flex-col justify-between gap-4">
+          <div onclick="openTokenTerminal('${c.token}')" class="cursor-pointer obsidian-card rounded-2xl p-5 flex flex-col justify-between gap-4 hover:border-[#3EE8A5]/45 transition">
             <div>
               <div class="flex items-center gap-3">
                 <img src="${c.logoURI}" onerror="this.src='https://placehold.co/100x100/0B0D10/3EE8A5?text=M'" class="h-12 w-12 rounded-xl border border-white/10 object-cover bg-[#0B0D10]" />
@@ -1424,13 +1624,16 @@
                     <h3 class="truncate text-sm font-extrabold text-white">${c.name}</h3>
                     <span class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#3EE8A5]">$${c.symbol}</span>
                   </div>
-                  <a href="https://bscscan.com/token/${c.token}" target="_blank" class="font-mono text-[10px] text-slate-400 hover:text-[#3EE8A5]">${c.token.slice(0, 10)}... ↗</a>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="font-mono text-[10px] text-slate-400">${c.token.slice(0, 10)}...</span>
+                    <span class="text-[10px] font-bold text-[#3EE8A5]">Open Chart & Chat →</span>
+                  </div>
                 </div>
               </div>
               <p class="mt-2.5 line-clamp-2 text-xs text-slate-400">${c.description}</p>
             </div>
 
-            <div class="space-y-3">
+            <div class="space-y-3" onclick="event.stopPropagation()">
               <div>
                 <div class="flex justify-between text-[11px] font-semibold">
                   <span class="text-slate-400">${c.graduated ? '🎉 Graduated to PancakeSwap' : 'Bonding Progress'}</span>
@@ -1442,11 +1645,14 @@
               </div>
 
               ${c.graduated
-                ? `<a href="https://pancakeswap.finance/swap?outputCurrency=${c.token}" target="_blank" class="block w-full rounded-xl bg-[#F0B90B] py-2.5 text-center text-xs font-black text-[#0B0D10]">Trade on PancakeSwap ↗</a>`
+                ? `<div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="openTokenTerminal('${c.token}')" class="rounded-xl border border-white/15 bg-[#151820] py-2.5 text-xs font-bold text-white hover:border-[#3EE8A5]">View Chart</button>
+                    <a href="https://pancakeswap.finance/swap?outputCurrency=${c.token}" target="_blank" class="rounded-xl bg-[#F0B90B] py-2.5 text-center text-xs font-black text-[#0B0D10]">PancakeSwap ↗</a>
+                  </div>`
                 : `<div class="grid grid-cols-3 gap-2">
                     <button type="button" onclick="buyCurve('${c.token}', 0.05)" class="rounded-xl border border-[#3EE8A5]/30 bg-[#3EE8A5]/10 py-2 font-mono text-xs font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">0.05 BNB</button>
                     <button type="button" onclick="buyCurve('${c.token}', 0.25)" class="rounded-xl border border-[#3EE8A5]/30 bg-[#3EE8A5]/10 py-2 font-mono text-xs font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">0.25 BNB</button>
-                    <button type="button" onclick="buyCurve('${c.token}', 1.0)" class="mint-btn rounded-xl py-2 font-mono text-xs font-black text-[#0B0D10] transition">1.0 BNB</button>
+                    <button type="button" onclick="openTokenTerminal('${c.token}')" class="mint-btn rounded-xl py-2 text-xs font-black text-[#0B0D10] transition">Trade / Chart</button>
                   </div>`
               }
             </div>
@@ -1464,6 +1670,9 @@
         simBnbBalance = Math.max(0, simBnbBalance - bnbAmount);
         refreshBalance();
         renderLiveCurves();
+        if (activeTokenAddr && activeTokenAddr.toLowerCase() === tokenAddr.toLowerCase()) {
+          await refreshActiveTokenTerminal();
+        }
         showStatus(`Sandbox: Bought ${bnbAmount} BNB on curve!`);
         return;
       }
@@ -1481,10 +1690,608 @@
         await tx.wait();
         await refreshBalance();
         await loadOnChainCurves();
+        if (activeTokenAddr && activeTokenAddr.toLowerCase() === tokenAddr.toLowerCase()) {
+          await refreshActiveTokenTerminal();
+        }
         showStatus(`Bought ${bnbAmount} BNB worth of tokens on MintMelt Curve!`, tx.hash);
       } catch (err) {
         showStatus(err.reason || err.shortMessage || err.message || "Curve buy failed", null, true);
       }
+    }
+
+    // =========================================================================
+    // DEDICATED TOKEN TERMINAL PAGE (CHART, BUY/SELL SWAP, CHAT & LIVE TRADES)
+    // =========================================================================
+    async function openTokenTerminal(tokenAddr) {
+      if (!tokenAddr) return;
+      activeTokenAddr = tokenAddr;
+      switchTab('token');
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('token', tokenAddr);
+        window.history.replaceState({}, '', url);
+      } catch (_) {}
+      await refreshActiveTokenTerminal();
+    }
+
+    function closeTokenTerminal() {
+      activeTokenAddr = null;
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('token');
+        window.history.replaceState({}, '', url);
+      } catch (_) {}
+      switchTab('explore');
+    }
+
+    function copyCurrentTokenAddress() {
+      if (!activeTokenAddr) return;
+      const el = document.createElement('textarea');
+      el.value = activeTokenAddr;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showStatus(`Copied Contract Address: ${activeTokenAddr}`);
+    }
+
+    function shareTokenLink() {
+      if (!activeTokenAddr) return;
+      const shareUrl = `${window.location.origin}${window.location.pathname}?token=${activeTokenAddr}`;
+      const el = document.createElement('textarea');
+      el.value = shareUrl;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showStatus(`Copied Direct Token Page Link: ${shareUrl}`);
+    }
+
+    async function refreshActiveTokenTerminal() {
+      if (!activeTokenAddr) return;
+
+      if (isSimulation) {
+        const cached = liveCurves.find(c => c.token.toLowerCase() === activeTokenAddr.toLowerCase()) || {
+          token: activeTokenAddr,
+          name: "Melt Demo",
+          symbol: "MELT",
+          logoURI: "https://placehold.co/120x120/0B0D10/3EE8A5?text=MELT",
+          description: "Sandbox bonding curve preview.",
+          realBnbRaised: 2.4,
+          targetBnb: 18,
+          graduated: false
+        };
+        const vBnb = (cached.targetBnb * 5) / 3 + cached.realBnbRaised;
+        const vTok = Math.max(200_000_000, 1_000_000_000 - cached.realBnbRaised * 35_000_000);
+        activeTokenData = {
+          token: cached.token,
+          creator: userAddress || "0x71C9...9A4E",
+          name: cached.name,
+          symbol: cached.symbol,
+          logoURI: cached.logoURI,
+          description: cached.description,
+          website: "",
+          twitter: "",
+          telegram: "",
+          virtualBnb: vBnb,
+          virtualTokens: vTok,
+          realBnbRaised: cached.realBnbRaised,
+          targetBnb: cached.targetBnb,
+          burnLp: true,
+          graduated: cached.graduated,
+          userTokenBal: 1250000
+        };
+        activeTrades = [
+          { trader: "0x84A1...3F20", isBuy: true, bnb: 0.45, tokens: 14200000, price: vBnb / vTok, txHash: "" },
+          { trader: "0x19C4...7E11", isBuy: true, bnb: 0.25, tokens: 8100000, price: (vBnb * 0.96) / vTok, txHash: "" }
+        ];
+        renderTokenTerminalUI();
+        return;
+      }
+
+      try {
+        const readProvider = new ethers.JsonRpcProvider(BSC_RPC);
+        const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, readProvider);
+        const tok = new ethers.Contract(activeTokenAddr, TOKEN_ABI, readProvider);
+
+        const [c, name, symbol, meta] = await Promise.all([
+          launchpad.curves(activeTokenAddr),
+          tok.name(),
+          tok.symbol(),
+          tok.metadata()
+        ]);
+
+        let userTokenBal = 0;
+        if (userAddress) {
+          try {
+            const rawBal = await tok.balanceOf(userAddress);
+            userTokenBal = Number(ethers.formatEther(rawBal));
+          } catch (_) {}
+        }
+
+        const virtualBnb    = Number(ethers.formatEther(c.virtualBnbReserve));
+        const virtualTokens = Number(ethers.formatEther(c.virtualTokenReserve));
+        const realBnbRaised = Number(ethers.formatEther(c.realBnbRaised));
+        const targetBnb     = Number(ethers.formatEther(c.targetBnb));
+
+        activeTokenData = {
+          token: activeTokenAddr,
+          creator: c.creator,
+          name,
+          symbol,
+          logoURI: meta.logoURI || `https://placehold.co/120x120/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0, 4))}`,
+          description: meta.description || "MintMelt fair-launch bonding curve token on BNB Smart Chain.",
+          website: meta.website || "",
+          twitter: meta.twitter || "",
+          telegram: meta.telegram || "",
+          virtualBnb,
+          virtualTokens,
+          realBnbRaised,
+          targetBnb,
+          burnLp: c.burnLp,
+          graduated: c.graduated,
+          userTokenBal
+        };
+
+        try {
+          const latestBlock = await readProvider.getBlockNumber();
+          const fromBlock = Math.max(0, latestBlock - 4500);
+          const filter = launchpad.filters.CurveTrade(activeTokenAddr);
+          const logs = await launchpad.queryFilter(filter, fromBlock, latestBlock);
+          activeTrades = logs.map(l => {
+            const vb = Number(ethers.formatEther(l.args.virtualBnb));
+            const vt = Number(ethers.formatEther(l.args.virtualTokens));
+            return {
+              trader: l.args.trader,
+              isBuy: l.args.isBuy,
+              bnb: Number(ethers.formatEther(l.args.bnbAmount)),
+              tokens: Number(ethers.formatEther(l.args.tokenAmount)),
+              price: vt > 0 ? vb / vt : 0,
+              txHash: l.transactionHash
+            };
+          }).reverse();
+        } catch (_) {
+          activeTrades = [];
+        }
+
+        renderTokenTerminalUI();
+      } catch (err) {
+        showStatus("Could not load token curve details from BSC RPC.", null, true);
+      }
+    }
+
+    function renderTokenTerminalUI() {
+      const d = activeTokenData;
+      if (!d) return;
+
+      document.getElementById('td-logo').src = d.logoURI;
+      document.getElementById('td-name').innerText = d.name;
+      document.getElementById('td-symbol').innerText = `$${d.symbol}`;
+      document.getElementById('td-ca').innerText = `${d.token.slice(0, 8)}...${d.token.slice(-6)}`;
+      document.getElementById('td-creator').innerText = `${d.creator.slice(0, 6)}...${d.creator.slice(-4)}`;
+      document.getElementById('td-desc').innerText = d.description;
+      document.getElementById('td-bscscan-link').href = `https://bscscan.com/token/${d.token}`;
+      document.getElementById('td-pcs-link').href = `https://pancakeswap.finance/swap?outputCurrency=${d.token}`;
+
+      const badge = document.getElementById('td-status-badge');
+      if (d.graduated) {
+        badge.className = "rounded-md border border-[#3EE8A5]/40 bg-[#3EE8A5]/15 px-2 py-0.5 text-[11px] font-bold text-[#3EE8A5]";
+        badge.innerText = "🎉 Graduated • PancakeSwap V2";
+        document.getElementById('td-graduated-panel').classList.remove('hidden');
+        document.getElementById('td-swap-form').classList.add('hidden');
+      } else {
+        badge.className = "rounded-md border border-[#F0B90B]/30 bg-[#F0B90B]/10 px-2 py-0.5 text-[11px] font-bold text-[#F0B90B]";
+        badge.innerText = "⚡ Bonding Active";
+        document.getElementById('td-graduated-panel').classList.add('hidden');
+        document.getElementById('td-swap-form').classList.remove('hidden');
+      }
+
+      const socials = [];
+      if (d.website) {
+        const href = d.website.startsWith('http') ? d.website : `https://${d.website}`;
+        socials.push(`<a href="${href}" target="_blank" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1.5 font-bold text-slate-200 hover:border-[#3EE8A5]">🌐 Website</a>`);
+      }
+      if (d.twitter) {
+        const handle = d.twitter.replace(/^@/, '').replace(/^https?:\/\/(x|twitter)\.com\//, '');
+        socials.push(`<a href="https://x.com/${handle}" target="_blank" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1.5 font-bold text-slate-200 hover:border-[#3EE8A5]">𝕏 Twitter</a>`);
+      }
+      if (d.telegram) {
+        const tg = d.telegram.startsWith('http') ? d.telegram : `https://t.me/${d.telegram.replace(/^@/, '').replace(/^t\.me\//, '')}`;
+        socials.push(`<a href="${tg}" target="_blank" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1.5 font-bold text-slate-200 hover:border-[#3EE8A5]">✈️ Telegram</a>`);
+      }
+      document.getElementById('td-socials').innerHTML = socials.join('');
+
+      const spotPrice = d.virtualTokens > 0 ? d.virtualBnb / d.virtualTokens : 0;
+      const mcapBnb   = spotPrice * 1_000_000_000;
+      document.getElementById('td-price').innerText = `${spotPrice.toFixed(9)} BNB`;
+      document.getElementById('td-mcap').innerText  = `${mcapBnb.toFixed(2)} BNB`;
+      document.getElementById('td-liq').innerText   = `${d.virtualBnb.toFixed(2)} BNB`;
+      document.getElementById('td-lp-badge').innerText = d.burnLp ? "🔥 LP Auto-Burn" : "👤 Creator LP";
+
+      const pct = Math.min(100, (d.realBnbRaised / Math.max(0.0001, d.targetBnb)) * 100);
+      document.getElementById('td-progress-pct').innerText = `${pct.toFixed(1)}%`;
+      document.getElementById('td-progress-bar').style.width = `${Math.max(2, pct)}%`;
+      document.getElementById('td-progress-sub').innerHTML = `Raised <strong class="text-white">${d.realBnbRaised.toFixed(3)} / ${d.targetBnb} BNB</strong>. At 100%, remaining tokens & BNB auto-migrate to PancakeSwap V2.`;
+
+      document.getElementById('td-user-token-bal').innerText = `${d.userTokenBal.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${d.symbol}`;
+
+      setTradeSide(currentTradeSide);
+      renderTokenChart(spotPrice);
+      renderTokenTradesTable();
+      renderTokenChatFeed();
+    }
+
+    function setTradeSide(side) {
+      currentTradeSide = side;
+      const buyBtn   = document.getElementById('td-mode-buy');
+      const sellBtn  = document.getElementById('td-mode-sell');
+      const unit     = document.getElementById('td-input-unit');
+      const label    = document.getElementById('td-input-label');
+      const presets  = document.getElementById('td-quick-presets');
+      const buyWrap  = document.getElementById('td-buy-btn-wrap');
+      const sellWrap = document.getElementById('td-sell-btn-wrap');
+      const sym      = activeTokenData ? activeTokenData.symbol : "TOKEN";
+
+      document.getElementById('td-amount-input').value = "";
+      document.getElementById('td-quote-out').innerText = "0.00";
+
+      if (side === 'buy') {
+        buyBtn.className  = "rounded-lg bg-[#3EE8A5] py-2.5 text-xs font-black text-[#0B0D10] transition";
+        sellBtn.className = "rounded-lg py-2.5 text-xs font-black text-slate-400 hover:text-white transition";
+        label.innerText   = "Amount (BNB)";
+        unit.innerText    = "BNB";
+        unit.className    = "absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-xs font-extrabold text-[#3EE8A5]";
+        buyWrap.classList.remove('hidden');
+        sellWrap.classList.add('hidden');
+        presets.innerHTML = `
+          <button type="button" onclick="setTradeQuickAmount(0.05)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#3EE8A5]">0.05</button>
+          <button type="button" onclick="setTradeQuickAmount(0.25)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#3EE8A5]">0.25</button>
+          <button type="button" onclick="setTradeQuickAmount(0.5)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#3EE8A5]">0.50</button>
+          <button type="button" onclick="setTradeQuickAmount(1.0)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#3EE8A5]">1.00</button>
+        `;
+      } else {
+        sellBtn.className = "rounded-lg bg-[#FF4747] py-2.5 text-xs font-black text-white transition";
+        buyBtn.className  = "rounded-lg py-2.5 text-xs font-black text-slate-400 hover:text-white transition";
+        label.innerText   = `Amount (${sym})`;
+        unit.innerText    = sym;
+        unit.className    = "absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-xs font-extrabold text-[#FF4747]";
+        sellWrap.classList.remove('hidden');
+        buyWrap.classList.add('hidden');
+        presets.innerHTML = `
+          <button type="button" onclick="setSellPercent(25)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#FF4747]">25%</button>
+          <button type="button" onclick="setSellPercent(50)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#FF4747]">50%</button>
+          <button type="button" onclick="setSellPercent(75)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#FF4747]">75%</button>
+          <button type="button" onclick="setSellPercent(100)" class="rounded-lg border border-white/10 bg-[#151820] py-1.5 text-slate-300 hover:border-[#FF4747]">MAX</button>
+        `;
+      }
+    }
+
+    function setTradeQuickAmount(val) {
+      document.getElementById('td-amount-input').value = val;
+      updateTradeQuote();
+    }
+
+    function setSellPercent(pct) {
+      if (!activeTokenData) return;
+      const amt = Math.floor((activeTokenData.userTokenBal * pct) / 100);
+      document.getElementById('td-amount-input').value = amt;
+      updateTradeQuote();
+    }
+
+    function updateTradeQuote() {
+      if (!activeTokenData) return;
+      const amt = parseFloat(document.getElementById('td-amount-input').value) || 0;
+      const outEl = document.getElementById('td-quote-out');
+      if (amt <= 0) {
+        outEl.innerText = "0.00";
+        return;
+      }
+
+      if (currentTradeSide === 'buy') {
+        const netBnb = amt * 0.99;
+        const tokensOut = (netBnb * activeTokenData.virtualTokens) / (activeTokenData.virtualBnb + netBnb);
+        outEl.innerText = `${tokensOut.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${activeTokenData.symbol}`;
+      } else {
+        const grossBnb = (amt * activeTokenData.virtualBnb) / (activeTokenData.virtualTokens + amt);
+        const netBnb = grossBnb * 0.99;
+        outEl.innerText = `${netBnb.toFixed(5)} BNB`;
+      }
+    }
+
+    async function executeTerminalBuy() {
+      const bnb = parseFloat(document.getElementById('td-amount-input').value);
+      if (!bnb || bnb <= 0) {
+        showStatus("Enter a BNB amount to buy.", null, true);
+        return;
+      }
+      await buyCurve(activeTokenAddr, bnb);
+    }
+
+    async function approveTerminalSell() {
+      const tokAmt = parseFloat(document.getElementById('td-amount-input').value);
+      if (!tokAmt || tokAmt <= 0) {
+        showStatus("Enter token amount to approve first.", null, true);
+        return;
+      }
+      if (isSimulation) {
+        showStatus("Sandbox: Tokens approved for curve sell!");
+        return;
+      }
+      if (!walletConnected || !signer) {
+        await handleWalletClick();
+        if (!signer) return;
+      }
+      try {
+        showStatus("Confirm token approval in your wallet...");
+        const tok = new ethers.Contract(activeTokenAddr, TOKEN_ABI, signer);
+        const tx = await tok.approve(LAUNCHPAD_ADDRESS, ethers.parseEther(tokAmt.toString()));
+        await tx.wait();
+        showStatus("Approved! Now click '2. Sell Tokens'.", tx.hash);
+      } catch (err) {
+        showStatus(err.reason || err.shortMessage || err.message || "Approval failed", null, true);
+      }
+    }
+
+    async function executeTerminalSell() {
+      const tokAmt = parseFloat(document.getElementById('td-amount-input').value);
+      if (!tokAmt || tokAmt <= 0) {
+        showStatus("Enter token amount to sell.", null, true);
+        return;
+      }
+      if (isSimulation) {
+        showStatus(`Sandbox: Sold ${tokAmt.toLocaleString()} tokens back to curve!`);
+        return;
+      }
+      if (!walletConnected || !signer) {
+        await handleWalletClick();
+        if (!signer) return;
+      }
+      try {
+        showStatus("Confirm curve sell in your wallet...");
+        const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer);
+        const tx = await launchpad.sell(activeTokenAddr, ethers.parseEther(tokAmt.toString()), 0n);
+        showStatus("Selling tokens on curve...", tx.hash);
+        await tx.wait();
+        await refreshBalance();
+        await refreshActiveTokenTerminal();
+        showStatus("Sold tokens for BNB on MintMelt Curve!", tx.hash);
+      } catch (err) {
+        showStatus(err.reason || err.shortMessage || err.message || "Sell failed (did you click 1. Approve first?)", null, true);
+      }
+    }
+
+    function renderTokenChart(currentPrice) {
+      const canvas = document.getElementById('td-chart-canvas');
+      if (!canvas) return;
+      const dpr  = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width  = Math.max(300, rect.width - 16) * dpr;
+      canvas.height = Math.max(180, rect.height - 16) * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const W = canvas.width / dpr;
+      const H = canvas.height / dpr;
+      ctx.clearRect(0, 0, W, H);
+
+      let points = [];
+      if (activeTrades.length >= 2) {
+        points = [...activeTrades].reverse().map(t => t.price);
+      } else {
+        const startP = currentPrice * 0.72;
+        for (let i = 0; i <= 14; i++) {
+          const t = i / 14;
+          points.push(startP + (currentPrice - startP) * (t * t));
+        }
+      }
+
+      const minP = Math.min(...points) * 0.96;
+      const maxP = Math.max(...points) * 1.04 || 0.000001;
+      const padL = 14, padR = 14, padT = 18, padB = 24;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.lineWidth = 1;
+      for (let g = 0; g <= 4; g++) {
+        const y = padT + (plotH * g) / 4;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(W - padR, y);
+        ctx.stroke();
+      }
+
+      const coords = points.map((p, idx) => {
+        const x = padL + (plotW * idx) / Math.max(1, points.length - 1);
+        const y = padT + plotH - ((p - minP) / Math.max(1e-18, maxP - minP)) * plotH;
+        return { x, y };
+      });
+
+      const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
+      grad.addColorStop(0, 'rgba(62, 232, 165, 0.28)');
+      grad.addColorStop(1, 'rgba(62, 232, 165, 0.0)');
+      ctx.beginPath();
+      ctx.moveTo(coords[0].x, H - padB);
+      coords.forEach(pt => ctx.lineTo(pt.x, pt.y));
+      ctx.lineTo(coords[coords.length - 1].x, H - padB);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.beginPath();
+      coords.forEach((pt, idx) => (idx === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)));
+      ctx.strokeStyle = '#3EE8A5';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      const last = coords[coords.length - 1];
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#3EE8A5';
+      ctx.fill();
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.fillText(`Spot: ${currentPrice.toFixed(9)} BNB`, padL, 12);
+    }
+
+    function renderTokenTradesTable() {
+      const tbody = document.getElementById('td-trades-body');
+      document.getElementById('td-trades-count').innerText = activeTrades.length;
+      if (!activeTrades.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center font-sans text-xs text-slate-400">No recent trades in the last ~3.5 hours. Be the next buyer on the curve!</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = activeTrades.slice(0, 25).map(t => `
+        <tr>
+          <td class="py-2.5 pr-3 text-slate-300">${t.trader.slice(0, 6)}...${t.trader.slice(-4)}</td>
+          <td class="py-2.5 px-3 font-bold ${t.isBuy ? 'text-[#3EE8A5]' : 'text-[#FF4747]'}">${t.isBuy ? 'BUY' : 'SELL'}</td>
+          <td class="py-2.5 px-3 text-white">${t.bnb.toFixed(4)}</td>
+          <td class="py-2.5 px-3 text-slate-300">${t.tokens.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+          <td class="py-2.5 pl-3 text-right">
+            ${t.txHash ? `<a href="https://bscscan.com/tx/${t.txHash}" target="_blank" class="text-[#3EE8A5] hover:underline">↗</a>` : '-'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // =========================================================================
+    // TOKEN PAGE LIVE CHAT / THREAD ENGINE
+    // =========================================================================
+    function switchTokenBottomTab(tab) {
+      const chatTab   = document.getElementById('td-subtab-chat');
+      const tradesTab = document.getElementById('td-subtab-trades');
+      const chatPanel = document.getElementById('td-panel-chat');
+      const trdPanel  = document.getElementById('td-panel-trades');
+
+      if (tab === 'chat') {
+        chatTab.className = "rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-extrabold text-[#3EE8A5] transition flex items-center gap-1.5";
+        tradesTab.className = "rounded-lg px-3 py-1.5 text-xs font-extrabold text-slate-400 hover:text-white transition flex items-center gap-1.5";
+        chatPanel.classList.remove('hidden');
+        trdPanel.classList.add('hidden');
+      } else {
+        tradesTab.className = "rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-extrabold text-[#3EE8A5] transition flex items-center gap-1.5";
+        chatTab.className = "rounded-lg px-3 py-1.5 text-xs font-extrabold text-slate-400 hover:text-white transition flex items-center gap-1.5";
+        trdPanel.classList.remove('hidden');
+        chatPanel.classList.add('hidden');
+      }
+    }
+
+    function getTokenChatStorageKey(tokenAddr) {
+      return `mintmelt_chat_${tokenAddr.toLowerCase()}`;
+    }
+
+    function loadTokenChatMessages(tokenAddr) {
+      try {
+        const raw = localStorage.getItem(getTokenChatStorageKey(tokenAddr));
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveTokenChatMessages(tokenAddr, msgs) {
+      try {
+        localStorage.setItem(getTokenChatStorageKey(tokenAddr), JSON.stringify(msgs.slice(0, 100)));
+      } catch (_) {}
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function postTokenChatMessage() {
+      if (!activeTokenAddr) return;
+      const input = document.getElementById('td-chat-input');
+      const text  = input.value.trim();
+      if (!text) {
+        showStatus("Type a message before posting.", null, true);
+        return;
+      }
+
+      if (!walletConnected || !userAddress) {
+        await handleWalletClick();
+        if (!walletConnected || !userAddress) return;
+      }
+
+      let verifiedSig = false;
+      if (!isSimulation && signer) {
+        try {
+          const msgToSign = `MintMelt Comment on ${activeTokenAddr}:\n"${text}"`;
+          await signer.signMessage(msgToSign);
+          verifiedSig = true;
+        } catch (err) {
+          showStatus("Signature cancelled — comment not posted.", null, true);
+          return;
+        }
+      }
+
+      const isDev = activeTokenData && activeTokenData.creator &&
+        userAddress.toLowerCase() === activeTokenData.creator.toLowerCase();
+
+      const msgs = loadTokenChatMessages(activeTokenAddr);
+      msgs.unshift({
+        id: Date.now(),
+        sender: userAddress,
+        isDev,
+        verified: verifiedSig || isSimulation,
+        text,
+        timestamp: Date.now()
+      });
+
+      saveTokenChatMessages(activeTokenAddr, msgs);
+      input.value = "";
+      renderTokenChatFeed();
+      showStatus("Comment posted to token thread!");
+    }
+
+    function renderTokenChatFeed() {
+      if (!activeTokenAddr) return;
+      const feed    = document.getElementById('td-chat-feed');
+      const countEl = document.getElementById('td-chat-count');
+      const msgs    = loadTokenChatMessages(activeTokenAddr);
+
+      const displayMsgs = msgs.length ? msgs : [{
+        id: 1,
+        sender: activeTokenData ? activeTokenData.creator : "0x0000...0000",
+        isDev: true,
+        verified: true,
+        text: `Welcome to $${activeTokenData ? activeTokenData.symbol : 'TOKEN'} on MintMelt! Drop your thoughts below while we fill the bonding curve to PancakeSwap. 🚀`,
+        timestamp: Date.now()
+      }];
+
+      countEl.innerText = msgs.length;
+
+      feed.innerHTML = displayMsgs.map(m => {
+        const shortSender = m.sender && m.sender.length > 12
+          ? `${m.sender.slice(0, 6)}...${m.sender.slice(-4)}`
+          : (m.sender || "Anon");
+        const timeStr = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const devBadge = m.isDev
+          ? `<span class="rounded bg-[#3EE8A5]/20 border border-[#3EE8A5]/40 px-1.5 py-0.2 font-mono text-[10px] font-black text-[#3EE8A5]">👑 DEV</span>`
+          : '';
+        const verBadge = m.verified
+          ? `<span title="Wallet Signature Verified" class="text-[10px] text-[#3EE8A5]">✓</span>`
+          : '';
+
+        return `
+          <div class="rounded-xl border ${m.isDev ? 'border-[#3EE8A5]/25 bg-[#3EE8A5]/[0.04]' : 'border-white/[0.06] bg-[#151820]'} p-3.5 space-y-1.5">
+            <div class="flex items-center justify-between gap-2 text-[11px]">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-slate-200">${shortSender}</span>
+                ${devBadge}
+                ${verBadge}
+              </div>
+              <span class="font-mono text-[10px] text-slate-500">${timeStr}</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-200 break-words leading-relaxed">${escapeHtml(m.text)}</p>
+          </div>
+        `;
+      }).join('');
     }
 
     // =========================================================================
@@ -1653,7 +2460,7 @@
             address: addrs[i],
             name,
             symbol,
-            logoURI: meta.logoURI || `https://placehold.co/80x80/0B0D10/3EE8A5?text=${symbol}`
+            logoURI: meta.logoURI || `https://placehold.co/80x80/0B0D10/3EE8A5?text=${encodeURIComponent(symbol.slice(0, 4))}`
           });
         }
         deployedTokens = list;
@@ -1669,7 +2476,14 @@
     window.addEventListener('DOMContentLoaded', () => {
       syncCurvePreview();
       updateFactoryPrice();
+      renderStandardTokens();
+      renderLocks();
       loadOnChainCurves();
+      const params = new URLSearchParams(window.location.search);
+      const tokenParam = params.get('token');
+      if (tokenParam && ethers.isAddress(tokenParam)) {
+        openTokenTerminal(tokenParam);
+      }
     });
   </script>
 </body>
