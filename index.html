@@ -238,13 +238,34 @@
           </div>
         </div>
 
-        <div>
-          <label class="mb-1.5 flex flex-wrap justify-between text-xs font-semibold text-slate-400">
-            <span>On-Chain Logo Image URL (PNG / SVG / IPFS)</span>
-            <span class="text-[#3EE8A5]">Updatable later on-chain</span>
-          </label>
-          <input id="c-logo" oninput="syncCurvePreview()" placeholder="https://ipfs.io/ipfs/... or choose a quick preset below" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
-          <div class="mt-2 flex flex-wrap items-center gap-2">
+        <!-- Token Logo Uploader (File Picker + Drag & Drop + URL) -->
+        <div class="space-y-2.5">
+          <div class="flex flex-wrap justify-between text-xs font-semibold text-slate-400">
+            <span>Token Logo Image *</span>
+            <span class="text-[#3EE8A5]">Stored 100% On-Chain (Updatable later)</span>
+          </div>
+
+          <div
+            id="c-dropzone"
+            onclick="document.getElementById('c-logo-file').click()"
+            ondragover="event.preventDefault(); this.classList.add('border-[#3EE8A5]', 'bg-[#3EE8A5]/5')"
+            ondragleave="this.classList.remove('border-[#3EE8A5]', 'bg-[#3EE8A5]/5')"
+            ondrop="handleLogoDrop(event, 'c-logo', syncCurvePreview)"
+            class="cursor-pointer rounded-xl border border-dashed border-white/20 bg-[#151820]/70 p-4 text-center hover:border-[#3EE8A5]/60 transition"
+          >
+            <input id="c-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" class="hidden" onchange="handleLogoFileSelect(this, 'c-logo', syncCurvePreview)" />
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3EE8A5]/15 text-lg text-[#3EE8A5]">🖼️</div>
+              <div class="text-left">
+                <div class="text-xs font-extrabold text-white">Click to Upload Token Image or Drag & Drop</div>
+                <div id="c-logo-status" class="text-[11px] text-slate-400">PNG, JPG, GIF, WebP or SVG • Auto-optimized for permanent on-chain storage</div>
+              </div>
+            </div>
+          </div>
+
+          <input id="c-logo" oninput="syncCurvePreview()" placeholder="Or paste an external image / IPFS URL (https://ipfs.io/ipfs/...)" class="obsidian-input w-full rounded-xl px-3.5 py-2 text-xs text-white" />
+
+          <div class="flex flex-wrap items-center gap-2">
             <span class="text-[11px] text-slate-500">Quick Presets:</span>
             <button type="button" onclick="setCurvePresetLogo('https://placehold.co/120x120/0B0D10/3EE8A5?text=MINT')" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:border-[#3EE8A5]">🟢 Mint Coin</button>
             <button type="button" onclick="setCurvePresetLogo('https://placehold.co/120x120/0B0D10/FF4747?text=MELT')" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:border-[#FF4747]">🔴 Melt Jeets</button>
@@ -372,9 +393,15 @@
           </div>
         </div>
 
-        <div>
-          <label class="mb-1 block text-xs text-slate-400">On-Chain Logo Image URL (https://...)</label>
-          <input id="f-logo" placeholder="https://ipfs.io/ipfs/... or https://yourdomain.com/logo.png" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+        <div class="space-y-2">
+          <label class="block text-xs text-slate-400">Token Logo Image (Upload from Device or Paste URL)</label>
+          <div class="flex items-center gap-2">
+            <input id="f-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" class="hidden" onchange="handleLogoFileSelect(this, 'f-logo')" />
+            <button type="button" onclick="document.getElementById('f-logo-file').click()" class="shrink-0 rounded-xl border border-[#3EE8A5]/35 bg-[#3EE8A5]/10 px-3.5 py-2.5 text-xs font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">
+              📁 Upload Image
+            </button>
+            <input id="f-logo" placeholder="https://ipfs.io/ipfs/... or uploaded on-chain image" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          </div>
         </div>
 
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -588,9 +615,13 @@
 
         <div class="flex items-center gap-3">
           <img id="u-logo-preview" src="https://placehold.co/80x80/0B0D10/3EE8A5?text=M" onerror="this.src='https://placehold.co/80x80/0B0D10/3EE8A5?text=M'" class="h-14 w-14 rounded-xl border border-white/10 object-cover bg-[#0B0D10]" />
-          <div class="flex-1">
-            <label class="mb-1 block text-xs text-slate-400">New Logo URL (IPFS / PNG / SVG) *</label>
-            <input id="u-logo" oninput="document.getElementById('u-logo-preview').src = this.value || 'https://placehold.co/80x80/0B0D10/3EE8A5?text=M'" placeholder="https://ipfs.io/ipfs/..." class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          <div class="flex-1 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs text-slate-400">New Logo Image *</label>
+              <button type="button" onclick="document.getElementById('u-logo-file').click()" class="text-[11px] font-bold text-[#3EE8A5] hover:underline">📁 Upload File</button>
+              <input id="u-logo-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" class="hidden" onchange="handleLogoFileSelect(this, 'u-logo', () => { document.getElementById('u-logo-preview').src = document.getElementById('u-logo').value; })" />
+            </div>
+            <input id="u-logo" oninput="document.getElementById('u-logo-preview').src = this.value || 'https://placehold.co/80x80/0B0D10/3EE8A5?text=M'" placeholder="https://ipfs.io/ipfs/... or upload file" class="obsidian-input w-full rounded-xl px-3.5 py-2 text-sm text-white" />
           </div>
         </div>
 
@@ -729,6 +760,79 @@
         return window.trustwallet.ethereum;
       }
       return null;
+    }
+
+    // =========================================================================
+    // IMAGE UPLOADER & ON-CHAIN OPTIMIZER (160x160 WEBP/PNG)
+    // =========================================================================
+    function processLogoFile(file, targetInputId, callback) {
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        showStatus("Please select a valid image file (PNG, JPG, WebP, GIF, or SVG).", null, true);
+        return;
+      }
+
+      const statusEl = document.getElementById('c-logo-status');
+      if (statusEl && targetInputId === 'c-logo') {
+        statusEl.innerText = `Optimizing "${file.name}" for on-chain storage...`;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (file.type === 'image/svg+xml' && file.size <= 16384) {
+          document.getElementById(targetInputId).value = e.target.result;
+          if (statusEl && targetInputId === 'c-logo') {
+            statusEl.innerHTML = `<span class="text-[#3EE8A5] font-bold">✅ Ready: ${file.name} (${(file.size / 1024).toFixed(1)} KB on-chain SVG)</span>`;
+          }
+          if (callback) callback();
+          showStatus(`Logo "${file.name}" loaded and optimized for on-chain storage!`);
+          return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          const size = 144;
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+
+          const minDim = Math.min(img.width, img.height);
+          const sx = (img.width - minDim) / 2;
+          const sy = (img.height - minDim) / 2;
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+
+          let dataUrl = canvas.toDataURL('image/webp', 0.82);
+          if (!dataUrl.startsWith('data:image/webp')) {
+            dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+          }
+
+          document.getElementById(targetInputId).value = dataUrl;
+          const kb = (dataUrl.length / 1024).toFixed(1);
+          if (statusEl && targetInputId === 'c-logo') {
+            statusEl.innerHTML = `<span class="text-[#3EE8A5] font-bold">✅ Uploaded: ${file.name} (${kb} KB • Permanent On-Chain)</span>`;
+          }
+          if (callback) callback();
+          showStatus(`Uploaded "${file.name}" (${kb} KB) — ready to store permanently on-chain!`);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleLogoFileSelect(inputEl, targetInputId, callback) {
+      if (inputEl.files && inputEl.files[0]) {
+        processLogoFile(inputEl.files[0], targetInputId, callback);
+      }
+    }
+
+    function handleLogoDrop(event, targetInputId, callback) {
+      event.preventDefault();
+      const dz = document.getElementById('c-dropzone');
+      if (dz) dz.classList.remove('border-[#3EE8A5]', 'bg-[#3EE8A5]/5');
+      if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+        processLogoFile(event.dataTransfer.files[0], targetInputId, callback);
+      }
     }
 
     // =========================================================================
@@ -1503,7 +1607,7 @@
       const desc      = document.getElementById('u-desc').value.trim();
 
       if (!ethers.isAddress(tokenAddr) || !logoURI) {
-        showStatus("Enter a valid Token Address and New Logo URL.", null, true);
+        showStatus("Enter a valid Token Address and New Logo Image.", null, true);
         return;
       }
 
