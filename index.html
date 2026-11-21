@@ -632,7 +632,7 @@
                   <span id="td-trades-count" class="rounded-full bg-white/10 px-1.5 py-0.2 font-mono text-[10px] text-slate-300">0</span>
                 </button>
               </div>
-              <span class="text-[11px] text-slate-400">Wallet-verified messages • <span class="text-[#3EE8A5] font-bold">DEV</span> badge auto-detected</span>
+              <span class="text-[11px] text-slate-400">Global live thread • <span class="text-[#3EE8A5] font-bold">DEV</span> badge auto-detected</span>
             </div>
 
             <!-- PANEL A: LIVE TOKEN CHAT / THREAD -->
@@ -909,7 +909,1081 @@
 
     const CFG_TUPLE  = "tuple(string name, string symbol, uint8 decimals, uint256 initialSupply, uint256 maxSupply, bool mintable, bool burnable, bool pausable, bool blacklistEnabled, uint16 buyTaxBps, uint16 sellTaxBps, uint256 maxTxAmount, uint256 maxWalletAmount, address taxWallet, address router, address creator, address controller, bool isCurveLaunch)";
     const META_TUPLE = "tuple(string logoURI, string website, string twitter, string telegram, string description)";
-// ... existing code ... -->
+
+    const FACTORY_ABI = [
+      `function createToken(${CFG_TUPLE} cfg, ${META_TUPLE} meta) external payable returns (address)`,
+      `function calculateFee(${CFG_TUPLE} cfg) public view returns (uint256)`,
+      "function getTokensByCreator(address creator) external view returns (address[])",
+      "event StandardTokenCreated(address indexed token, address indexed creator, string name, string symbol, string logoURI, uint256 feePaid)"
+    ];
+
+    const LAUNCHPAD_ABI = [
+      `function launchCurve(${CFG_TUPLE} cfg, ${META_TUPLE} meta, uint256 targetBnb, bool burnLp) external payable returns (address)`,
+      "function buy(address token, uint256 minTokensOut) external payable",
+      "function sell(address token, uint256 tokensIn, uint256 minBnbOut) external",
+      "function getAllLaunchesCount() external view returns (uint256)",
+      "function allLaunches(uint256) external view returns (address)",
+      "function curves(address) external view returns (address token, address creator, uint256 virtualBnbReserve, uint256 virtualTokenReserve, uint256 realBnbRaised, uint256 tokensRemaining, uint256 lpTokensReserved, uint256 targetBnb, bool burnLp, bool graduated)",
+      "event CurveLaunched(address indexed token, address indexed creator, string name, string symbol, string logoURI, uint256 targetBnb)",
+      "event CurveTrade(address indexed token, address indexed trader, bool isBuy, uint256 bnbAmount, uint256 tokenAmount, uint256 virtualBnb, uint256 virtualTokens)"
+    ];
+
+    const LOCKER_ABI = [
+      "function lockTokens(address token, uint256 amount, uint256 unlockTime) external payable returns (uint256)",
+      "function unlockTokens(uint256 lockId) external",
+      "function locks(uint256) external view returns (uint256 id, address token, address owner, uint256 amount, uint256 unlockTime, bool withdrawn)",
+      "function userLocks(address, uint256) external view returns (uint256)"
+    ];
+
+    const TOKEN_ABI = [
+      "function name() view returns (string)",
+      "function symbol() view returns (string)",
+      "function decimals() view returns (uint8)",
+      "function totalSupply() view returns (uint256)",
+      "function balanceOf(address) view returns (uint256)",
+      "function approve(address spender, uint256 amount) returns (bool)",
+      "function metadata() view returns (string logoURI, string website, string twitter, string telegram, string description)",
+      "function updateMetadata(string logoURI, string website, string twitter, string telegram, string description) external payable"
+    ];
+
+    // =========================================================================
+    // APPLICATION STATE & EIP-6963 DISCOVERY
+    // =========================================================================
+    let isSimulation    = false;
+    let walletConnected = false;
+    let userAddress     = null;
+    let provider        = null;
+    let signer          = null;
+    let activeEip1193   = null;
+    const discoveredProviders = [];
+
+    let liveCurves       = [];
+    let standardTokens   = [];
+    let activeLocks      = [];
+    let activeTokenAddr  = null;
+    let activeTokenData  = null;
+    let activeTradeSide  = 'buy';
+
+    window.addEventListener("eip6963:announceProvider", (event) => {
+      if (event && event.detail && event.detail.provider) {
+        discoveredProviders.push(event.detail);
+      }
+    });
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+    function getInjectedProvider() {
+      if (discoveredProviders.length > 0) {
+        const trust = discoveredProviders.find(p => p.info && p.info.name && p.info.name.toLowerCase().includes("trust"));
+        if (trust) return trust.provider;
+        const mm = discoveredProviders.find(p => p.info && p.info.name && p.info.name.toLowerCase().includes("metamask"));
+        if (mm) return mm.provider;
+        return discoveredProviders[0].provider;
+      }
+      if (window.trustwallet && window.trustwallet.ethereum) return window.trustwallet.ethereum;
+      if (window.ethereum && Array.isArray(window.ethereum.providers) && window.ethereum.providers.length > 0) {
+        const trust = window.ethereum.providers.find(p => p.isTrust || p.isTrustWallet);
+        return trust || window.ethereum.providers[0];
+      }
+      return window.ethereum || null;
+    }
+
+    // =========================================================================
+    // ON-CHAIN IMAGE COMPRESSION & UPLOAD HANDLER
+    // =========================================================================
+    function handleLogoFileSelect(inputEl, targetInputId, callback) {
+      const file = inputEl.files && inputEl.files[0];
+      if (!file) return;
+      processImageFileToDataURI(file, targetInputId, callback);
+    }
+
+    function handleLogoDrop(event, targetInputId, callback) {
+      event.preventDefault();
+      const dz = document.getElementById('c-dropzone');
+      if (dz) dz.classList.remove('border-[#3EE8A5]', 'bg-[#3EE8A5]/5');
+      const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (!file) return;
+      processImageFileToDataURI(file, targetInputId, callback);
+    }
+
+    function processImageFileToDataURI(file, targetInputId, callback) {
+      if (!file.type.startsWith('image/')) {
+        showStatus("Please select a valid image file (PNG, JPG, GIF, WebP, or SVG).", null, true);
+        return;
+      }
+      const statusLabel = document.getElementById('c-logo-status');
+      if (statusLabel && targetInputId === 'c-logo') {
+        statusLabel.innerText = `Optimizing "${file.name}" for permanent on-chain storage...`;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (file.type === 'image/svg+xml' && e.target.result.length < 16000) {
+          document.getElementById(targetInputId).value = e.target.result;
+          if (statusLabel && targetInputId === 'c-logo') {
+            statusLabel.innerText = `✅ Ready on-chain (${(e.target.result.length / 1024).toFixed(1)} KB SVG)`;
+          }
+          if (typeof callback === 'function') callback();
+          showStatus("SVG logo encoded and ready for permanent on-chain storage!");
+          return;
+        }
+
+        const img = new Image();
+        img.onload = function() {
+          const MAX_DIM = 144;
+          let w = img.width;
+          let h = img.height;
+          if (w > h) {
+            if (w > MAX_DIM) { h = Math.round((h * MAX_DIM) / w); w = MAX_DIM; }
+          } else {
+            if (h > MAX_DIM) { w = Math.round((w * MAX_DIM) / h); h = MAX_DIM; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          let dataUrl = canvas.toDataURL('image/webp', 0.80);
+          if (!dataUrl.startsWith('data:image/webp') || dataUrl.length > 15000) {
+            dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+          }
+
+          document.getElementById(targetInputId).value = dataUrl;
+          const kb = (dataUrl.length / 1024).toFixed(1);
+          if (statusLabel && targetInputId === 'c-logo') {
+            statusLabel.innerText = `✅ "${file.name}" compressed to ${kb} KB — Stored 100% On-Chain!`;
+          }
+          if (typeof callback === 'function') callback();
+          showStatus(`Logo "${file.name}" (${kb} KB) prepared for permanent BSC on-chain storage!`);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // =========================================================================
+    // NAVIGATION & UI TABS
+    // =========================================================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(`view-${tabId}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]');
+        btn.classList.add('text-slate-400');
+      });
+      const activeDesk = document.getElementById(`tab-${tabId}`);
+      if (activeDesk) {
+        activeDesk.classList.add('bg-[#151820]', 'text-[#3EE8A5]');
+        activeDesk.classList.remove('text-slate-400');
+      }
+
+      document.querySelectorAll('.mnav-tab').forEach(btn => {
+        btn.classList.remove('bg-[#151820]', 'text-[#3EE8A5]');
+        btn.classList.add('text-slate-400');
+      });
+      const activeMob = document.getElementById(`mtab-${tabId}`);
+      if (activeMob) {
+        activeMob.classList.add('bg-[#151820]', 'text-[#3EE8A5]');
+        activeMob.classList.remove('text-slate-400');
+      }
+
+      if (tabId === 'explore') loadOnChainCurves();
+      if (tabId === 'factory') refreshStandardTokensList();
+      if (tabId === 'locker')  refreshLocksList();
+      if (tabId === 'logo')    populateMetadataDropdown();
+    }
+
+    function showStatus(text, txHash = null, isError = false, showMobileLinks = false) {
+      const banner   = document.getElementById('status-banner');
+      const icon     = document.getElementById('status-icon');
+      const txt      = document.getElementById('status-text');
+      const link     = document.getElementById('status-link');
+      const mobLinks = document.getElementById('mobile-deeplinks');
+
+      banner.classList.remove('hidden');
+      if (isError) {
+        banner.className = "mb-6 rounded-xl border border-[#FF4747]/40 bg-[#FF4747]/10 p-4 text-xs font-semibold text-[#FF4747] flex flex-col gap-3 transition-all";
+        icon.innerText = "⚠️";
+      } else {
+        banner.className = "mb-6 rounded-xl border border-[#3EE8A5]/40 bg-[#3EE8A5]/10 p-4 text-xs font-semibold text-[#3EE8A5] flex flex-col gap-3 transition-all";
+        icon.innerText = "✅";
+      }
+      txt.innerText = text;
+
+      if (txHash && txHash.startsWith('0x')) {
+        link.href = `https://bscscan.com/tx/${txHash}`;
+        link.classList.remove('hidden');
+      } else {
+        link.classList.add('hidden');
+      }
+
+      if (showMobileLinks) {
+        mobLinks.classList.remove('hidden');
+        mobLinks.classList.add('flex');
+      } else {
+        mobLinks.classList.add('hidden');
+        mobLinks.classList.remove('flex');
+      }
+    }
+
+    function hideStatus() {
+      document.getElementById('status-banner').classList.add('hidden');
+    }
+
+    function toggleSimulationMode() {
+      isSimulation = !isSimulation;
+      const pill  = document.getElementById('mode-pill');
+      const dot   = document.getElementById('net-dot');
+      const label = document.getElementById('net-label');
+      if (isSimulation) {
+        pill.className = "hidden sm:flex items-center gap-2 rounded-xl border border-[#3EE8A5]/25 bg-[#3EE8A5]/10 px-3 py-1.5 text-xs font-semibold text-[#3EE8A5] hover:bg-[#3EE8A5]/20 transition";
+        dot.className  = "h-2 w-2 rounded-full bg-[#3EE8A5] animate-pulse";
+        label.innerText = "Preview Sandbox";
+        showStatus("Switched to Preview Sandbox Mode (Zero gas required to test UI).");
+      } else {
+        pill.className = "hidden sm:flex items-center gap-2 rounded-xl border border-[#F0B90B]/30 bg-[#F0B90B]/10 px-3 py-1.5 text-xs font-semibold text-[#F0B90B] hover:bg-[#F0B90B]/20 transition";
+        dot.className  = "h-2 w-2 rounded-full bg-[#F0B90B] animate-pulse";
+        label.innerText = "BSC Mainnet RPC";
+        showStatus("Switched to Live BSC Mainnet Mode. Connect your wallet to sign transactions.");
+      }
+    }
+
+    // =========================================================================
+    // WALLET CONNECTION, MOBILE BSC SWITCHER & DISCONNECT
+    // =========================================================================
+    async function ensureBscChain(eth) {
+      let currentChain = await eth.request({ method: 'eth_chainId' }).catch(() => null);
+      if (currentChain === '0x38' || Number(currentChain) === 56) return true;
+
+      try {
+        await eth.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x38' }],
+        });
+        return true;
+      } catch (switchErr) {
+        try {
+          await eth.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x38',
+              chainName: 'BNB Smart Chain',
+              nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+              rpcUrls: ['https://bsc-dataseed.binance.org/'],
+              blockExplorerUrls: ['https://bscscan.com']
+            }],
+          });
+        } catch (_) {}
+
+        currentChain = await eth.request({ method: 'eth_chainId' }).catch(() => null);
+        if (currentChain === '0x38' || Number(currentChain) === 56) return true;
+
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile) {
+          throw new Error("Trust Wallet Mobile: Tap the top-right (•••) menu in this browser → select 'EVM Network' → choose 'BNB Smart Chain' (or add Custom Network RPC https://bsc-dataseed.binance.org/ in Manage Crypto), then tap Connect Wallet.");
+        }
+        throw new Error("Please switch your wallet network to BNB Smart Chain (Chain ID 56) and try again.");
+      }
+    }
+
+    async function handleWalletClick() {
+      if (isSimulation) {
+        walletConnected = true;
+        userAddress = "0x71C9...89A4";
+        updateWalletUI("4.2500");
+        showStatus("Sandbox Wallet Connected!");
+        return;
+      }
+
+      const eth = getInjectedProvider();
+      if (!eth) {
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile) {
+          showStatus("Opened in standard mobile browser — tap a wallet button below to launch MintMelt directly on BNB Smart Chain:", null, true, true);
+        } else {
+          showStatus("No Web3 wallet detected! Please install MetaMask, Trust Wallet, or Rabby.", null, true);
+        }
+        return;
+      }
+
+      try {
+        activeEip1193 = eth;
+        await eth.request({ method: 'eth_requestAccounts' });
+        await ensureBscChain(eth);
+
+        provider    = new ethers.BrowserProvider(eth);
+        signer      = await provider.getSigner();
+        userAddress = await signer.getAddress();
+        const bal   = await provider.getBalance(userAddress);
+        walletConnected = true;
+
+        updateWalletUI(Number(ethers.formatEther(bal)).toFixed(4));
+        showStatus(`Connected to BNB Smart Chain (${userAddress.slice(0, 6)}...${userAddress.slice(-4)})`);
+
+        if (eth.on) {
+          eth.on('accountsChanged', (accs) => {
+            if (!accs || accs.length === 0) disconnectWallet();
+            else handleWalletClick();
+          });
+          eth.on('chainChanged', () => window.location.reload());
+        }
+
+        await Promise.all([loadOnChainCurves(), refreshStandardTokensList(), refreshLocksList()]);
+      } catch (err) {
+        showStatus(err.message || "Wallet connection failed", null, true);
+      }
+    }
+
+    function updateWalletUI(bnbFormatted) {
+      const btn     = document.getElementById('connect-btn');
+      const discBtn = document.getElementById('disconnect-btn');
+      const balBox  = document.getElementById('wallet-balance-box');
+      const bnbSpan = document.getElementById('wallet-bnb');
+
+      btn.innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+      btn.classList.remove('mint-btn', 'text-[#0B0D10]');
+      btn.classList.add('bg-[#151820]', 'border', 'border-[#3EE8A5]/40', 'text-[#3EE8A5]');
+
+      discBtn.classList.remove('hidden');
+      discBtn.classList.add('inline-flex');
+
+      bnbSpan.innerText = bnbFormatted;
+      balBox.classList.remove('hidden');
+      balBox.classList.add('flex');
+    }
+
+    async function disconnectWallet() {
+      try {
+        if (activeEip1193 && activeEip1193.request) {
+          await activeEip1193.request({
+            method: "wallet_revokePermissions",
+            params: [{ eth_accounts: {} }]
+          }).catch(() => {});
+        }
+      } catch (_) {}
+
+      walletConnected = false;
+      userAddress     = null;
+      provider        = null;
+      signer          = null;
+      activeEip1193   = null;
+
+      const btn     = document.getElementById('connect-btn');
+      const discBtn = document.getElementById('disconnect-btn');
+      const balBox  = document.getElementById('wallet-balance-box');
+
+      btn.innerText = "Connect Wallet";
+      btn.className = "mint-btn rounded-xl px-3.5 sm:px-4 py-2 text-xs font-black text-[#0B0D10] transition";
+
+      discBtn.classList.add('hidden');
+      discBtn.classList.remove('inline-flex');
+
+      balBox.classList.add('hidden');
+      balBox.classList.remove('flex');
+
+      showStatus("Wallet disconnected.");
+    }
+
+    // =========================================================================
+    // BONDING CURVE PREVIEW & LAUNCH
+    // =========================================================================
+    function setCurvePresetLogo(url) {
+      document.getElementById('c-logo').value = url;
+      syncCurvePreview();
+    }
+
+    function syncCurvePreview() {
+      const name   = document.getElementById('c-name').value.trim() || "Your Token Name";
+      const sym    = (document.getElementById('c-symbol').value.trim() || "TICKER").toUpperCase();
+      const logo   = document.getElementById('c-logo').value.trim() || "https://placehold.co/100x100/0B0D10/3EE8A5?text=M";
+      const desc   = document.getElementById('c-desc').value.trim() || "Fair-launch bonding curve with instant PancakeSwap migration.";
+      const target = Math.max(1, parseFloat(document.getElementById('c-target').value) || 18);
+      const devBuy = Math.max(0, parseFloat(document.getElementById('c-devbuy').value) || 0);
+
+      document.getElementById('prev-name').innerText   = name;
+      document.getElementById('prev-symbol').innerText = `$${sym}`;
+      document.getElementById('prev-img').src          = logo;
+      document.getElementById('prev-desc').innerText   = desc;
+
+      const pct = Math.min(100, (devBuy / target) * 100);
+      document.getElementById('prev-progress-text').innerText = `${devBuy.toFixed(2)} / ${target} BNB (${pct.toFixed(1)}%)`;
+      document.getElementById('prev-progress-bar').style.width  = `${Math.max(1.5, pct)}%`;
+
+      document.getElementById('prev-devbuy').innerText = `${devBuy.toFixed(4)} BNB`;
+      document.getElementById('prev-total').innerText  = `${(0.005 + devBuy).toFixed(4)} BNB`;
+    }
+
+    async function deployCurve() {
+      const name   = document.getElementById('c-name').value.trim();
+      const symbol = document.getElementById('c-symbol').value.trim().toUpperCase();
+      const logo   = document.getElementById('c-logo').value.trim() || "https://placehold.co/120x120/0B0D10/3EE8A5?text=MM";
+      const desc   = document.getElementById('c-desc').value.trim();
+      const web    = document.getElementById('c-web').value.trim();
+      const x      = document.getElementById('c-x').value.trim();
+      const tg     = document.getElementById('c-tg').value.trim();
+      const target = parseFloat(document.getElementById('c-target').value) || 18;
+      const devBuy = parseFloat(document.getElementById('c-devbuy').value) || 0;
+      const burnLp = document.getElementById('c-burnlp').checked;
+
+      if (!name || !symbol) {
+        showStatus("Please enter both a Token Name and Ticker Symbol.", null, true);
+        return;
+      }
+      if (!walletConnected) {
+        await handleWalletClick();
+        if (!walletConnected) return;
+      }
+
+      if (isSimulation) {
+        const fakeAddr = "0x" + Math.random().toString(16).slice(2, 42).padEnd(40, "a");
+        liveCurves.unshift({
+          token: fakeAddr, creator: userAddress, name, symbol, logoURI: logo, description: desc,
+          website: web, twitter: x, telegram: tg, realBnbRaised: devBuy, targetBnb: target,
+          virtualBnbReserve: (target * 5) / 3 + devBuy, virtualTokenReserve: 1000000000,
+          burnLp, graduated: false
+        });
+        showStatus(`Simulated launch of $${symbol} complete!`);
+        await openTokenTerminal(fakeAddr);
+        return;
+      }
+
+      try {
+        showStatus("Confirm bonding curve launch in your wallet...");
+        const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer);
+        const zeroAddr  = ethers.ZeroAddress;
+        const cfg = {
+          name, symbol, decimals: 18,
+          initialSupply: ethers.parseEther("1000000000"),
+          maxSupply: ethers.parseEther("1000000000"),
+          mintable: false, burnable: true, pausable: false, blacklistEnabled: false,
+          buyTaxBps: 0, sellTaxBps: 0, maxTxAmount: 0, maxWalletAmount: 0,
+          taxWallet: zeroAddr, router: zeroAddr, creator: zeroAddr, controller: zeroAddr,
+          isCurveLaunch: true
+        };
+        const meta = { logoURI: logo, website: web, twitter: x, telegram: tg, description: desc };
+        const totalValue = ethers.parseEther((0.005 + devBuy).toFixed(6));
+
+        const tx = await launchpad.launchCurve(cfg, meta, ethers.parseEther(target.toString()), burnLp, { value: totalValue });
+        showStatus("Transaction submitted! Waiting for BSC confirmation...", tx.hash);
+        const receipt = await tx.wait();
+
+        let launchedToken = null;
+        for (const log of receipt.logs) {
+          try {
+            const parsed = launchpad.interface.parseLog(log);
+            if (parsed && parsed.name === "CurveLaunched") {
+              launchedToken = parsed.args.token;
+              break;
+            }
+          } catch (_) {}
+        }
+
+        showStatus(`$${symbol} launched live on MintMelt Curve!`, tx.hash);
+        await loadOnChainCurves();
+        if (launchedToken) {
+          await openTokenTerminal(launchedToken);
+        } else {
+          switchTab('explore');
+        }
+      } catch (err) {
+        showStatus(err.reason || err.message || "Curve launch failed", null, true);
+      }
+    }
+
+    // =========================================================================
+    // MODULAR TOKEN FACTORY PRICING & DEPLOYMENT
+    // =========================================================================
+    function updateFactoryPrice() {
+      const buyTax  = parseInt(document.getElementById('f-buytax').value) || 0;
+      const sellTax = parseInt(document.getElementById('f-selltax').value) || 0;
+      const maxWal  = parseFloat(document.getElementById('f-maxwal').value) || 0;
+      const maxTx   = parseFloat(document.getElementById('f-maxtx').value) || 0;
+      const mint    = document.getElementById('f-mint').checked;
+      const pause   = document.getElementById('f-pause').checked;
+      const black   = document.getElementById('f-black').checked;
+
+      let total = 0.005;
+      const addons = [];
+
+      if (buyTax > 0 || sellTax > 0) {
+        total += 0.015;
+        addons.push(`<div class="flex justify-between"><span>+ Auto-BNB Buy/Sell Taxes (${buyTax}% / ${sellTax}%)</span><span class="font-mono text-[#3EE8A5]">+0.0150 BNB</span></div>`);
+      }
+      if (maxWal > 0 || maxTx > 0) {
+        total += 0.010;
+        addons.push(`<div class="flex justify-between"><span>+ Anti-Whale Wallet/Tx Limits</span><span class="font-mono text-[#3EE8A5]">+0.0100 BNB</span></div>`);
+      }
+      if (mint) {
+        total += 0.010;
+        addons.push(`<div class="flex justify-between"><span>+ Owner Minting Module</span><span class="font-mono text-[#3EE8A5]">+0.0100 BNB</span></div>`);
+      }
+      if (pause) {
+        total += 0.005;
+        addons.push(`<div class="flex justify-between"><span>+ Emergency Trading Pause</span><span class="font-mono text-[#3EE8A5]">+0.0050 BNB</span></div>`);
+      }
+      if (black) {
+        total += 0.010;
+        addons.push(`<div class="flex justify-between"><span>+ Anti-Bot Blacklist Module</span><span class="font-mono text-[#FF4747]">+0.0100 BNB</span></div>`);
+      }
+
+      const formatted = total.toFixed(4);
+      const shortFmt  = total.toFixed(3);
+      document.getElementById('f-breakdown-addons').innerHTML = addons.join('');
+      document.getElementById('f-total-fee-display').innerText = `${formatted} BNB`;
+      document.getElementById('factory-header-fee').innerText  = `${shortFmt} BNB`;
+      document.getElementById('btn-deploy-standard').innerText = `⚡ Deploy Standard BEP-20 Token (${shortFmt} BNB)`;
+      return total;
+    }
+
+    async function deployStandard() {
+      const name     = document.getElementById('f-name').value.trim();
+      const symbol   = document.getElementById('f-symbol').value.trim().toUpperCase();
+      const supply   = document.getElementById('f-supply').value.trim() || "1000000000";
+      const decimals = parseInt(document.getElementById('f-decimals').value) || 18;
+      const logo     = document.getElementById('f-logo').value.trim() || "https://placehold.co/120x120/0B0D10/3EE8A5?text=BEP20";
+      const web      = document.getElementById('f-web').value.trim();
+      const x        = document.getElementById('f-x').value.trim();
+      const tg       = document.getElementById('f-tg').value.trim();
+      const buyTax   = parseInt(document.getElementById('f-buytax').value) || 0;
+      const sellTax  = parseInt(document.getElementById('f-selltax').value) || 0;
+      const maxWalPct= parseFloat(document.getElementById('f-maxwal').value) || 0;
+      const maxTxPct = parseFloat(document.getElementById('f-maxtx').value) || 0;
+      const taxWal   = document.getElementById('f-taxwal').value.trim();
+      const burnable = document.getElementById('f-burn').checked;
+      const mintable = document.getElementById('f-mint').checked;
+      const pausable = document.getElementById('f-pause').checked;
+      const black    = document.getElementById('f-black').checked;
+
+      if (!name || !symbol) {
+        showStatus("Please enter Token Name and Ticker Symbol.", null, true);
+        return;
+      }
+      if (!walletConnected) {
+        await handleWalletClick();
+        if (!walletConnected) return;
+      }
+
+      const feeBnb = updateFactoryPrice();
+
+      if (isSimulation) {
+        const fakeAddr = "0x" + Math.random().toString(16).slice(2, 42).padEnd(40, "f");
+        standardTokens.unshift({ address: fakeAddr, name, symbol, logoURI: logo, website: web, twitter: x, telegram: tg });
+        refreshStandardTokensList();
+        showStatus(`Simulated deployment of $${symbol} (${feeBnb.toFixed(3)} BNB)!`);
+        return;
+      }
+
+      try {
+        showStatus(`Confirm $${symbol} deployment (${feeBnb.toFixed(3)} BNB) in your wallet...`);
+        const factory  = new ethers.Contract(FACTORY_ADDRESS, FACTORY_ABI, signer);
+        const zeroAddr = ethers.ZeroAddress;
+        const rawSupply = ethers.parseUnits(supply, decimals);
+        const maxWalletAmount = maxWalPct > 0 ? (rawSupply * BigInt(Math.floor(maxWalPct * 100))) / 10000n : 0n;
+        const maxTxAmount     = maxTxPct > 0  ? (rawSupply * BigInt(Math.floor(maxTxPct * 100))) / 10000n : 0n;
+
+        const cfg = {
+          name, symbol, decimals,
+          initialSupply: rawSupply,
+          maxSupply: mintable ? rawSupply * 10n : rawSupply,
+          mintable, burnable, pausable, blacklistEnabled: black,
+          buyTaxBps: buyTax * 100,
+          sellTaxBps: sellTax * 100,
+          maxTxAmount, maxWalletAmount,
+          taxWallet: ethers.isAddress(taxWal) ? taxWal : userAddress,
+          router: zeroAddr, creator: zeroAddr, controller: zeroAddr,
+          isCurveLaunch: false
+        };
+        const meta = { logoURI: logo, website: web, twitter: x, telegram: tg, description: `${name} ($${symbol}) deployed on MintMelt Factory.` };
+        const requiredFeeWei = await factory.calculateFee(cfg);
+
+        const tx = await factory.createToken(cfg, meta, { value: requiredFeeWei });
+        showStatus("Deploying BEP-20 contract on BSC...", tx.hash);
+        await tx.wait();
+
+        showStatus(`$${symbol} deployed successfully! 100% of supply minted to your wallet.`, tx.hash);
+        await refreshStandardTokensList();
+      } catch (err) {
+        showStatus(err.reason || err.message || "Token deployment failed", null, true);
+      }
+    }
+
+    async function refreshStandardTokensList() {
+      const container = document.getElementById('standard-tokens-list');
+      if (!walletConnected || !userAddress || isSimulation) {
+        if (!standardTokens.length) {
+          container.innerHTML = `<div class="rounded-xl border border-white/[0.06] bg-[#151820] p-4 text-center text-xs text-slate-400">Connect your wallet to load your deployed BEP-20 tokens from BSC Mainnet.</div>`;
+          return;
+        }
+      } else {
+        try {
+          const readProv = new ethers.JsonRpcProvider(BSC_RPC);
+          const factory  = new ethers.Contract(FACTORY_ADDRESS, FACTORY_ABI, readProv);
+          const addrs    = await factory.getTokensByCreator(userAddress);
+          const loaded   = [];
+          for (const addr of [...addrs].reverse()) {
+            const tok = new ethers.Contract(addr, TOKEN_ABI, readProv);
+            const [name, symbol, meta] = await Promise.all([tok.name(), tok.symbol(), tok.metadata()]);
+            loaded.push({ address: addr, name, symbol, logoURI: meta.logoURI, website: meta.website, twitter: meta.twitter, telegram: meta.telegram });
+          }
+          standardTokens = loaded;
+        } catch (_) {}
+      }
+
+      if (!standardTokens.length) {
+        container.innerHTML = `<div class="rounded-xl border border-white/[0.06] bg-[#151820] p-4 text-center text-xs text-slate-400">No tokens deployed from this wallet yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = standardTokens.map(t => `
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-[#151820] p-3.5">
+          <div class="flex items-center gap-3">
+            <img src="${t.logoURI || 'https://placehold.co/80x80/0B0D10/3EE8A5?text=T'}" onerror="this.src='https://placehold.co/80x80/0B0D10/3EE8A5?text=T'" class="h-10 w-10 rounded-xl object-cover bg-[#0B0D10]" />
+            <div>
+              <div class="text-xs font-extrabold text-white">${escapeHtml(t.name)} <span class="font-mono text-[#3EE8A5]">$${escapeHtml(t.symbol)}</span></div>
+              <a href="https://bscscan.com/token/${t.address}" target="_blank" class="font-mono text-[11px] text-slate-400 hover:text-[#3EE8A5]">${t.address} ↗</a>
+            </div>
+          </div>
+          <button type="button" onclick="jumpToMetaEditor('${t.address}')" class="rounded-lg border border-[#3EE8A5]/30 bg-[#3EE8A5]/10 px-3 py-1.5 text-[11px] font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">
+            Edit Logo ↗
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // =========================================================================
+    // LIVE CURVES LOADER & DEDICATED TOKEN TERMINAL PAGE
+    // =========================================================================
+    async function loadOnChainCurves() {
+      const grid = document.getElementById('curves-grid');
+      if (!isSimulation) {
+        try {
+          const readProv  = new ethers.JsonRpcProvider(BSC_RPC);
+          const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, readProv);
+          const count     = Number(await launchpad.getAllLaunchesCount());
+          document.getElementById('live-curve-count').innerText = count;
+
+          const fetched = [];
+          const start   = Math.max(0, count - 30);
+          for (let i = count - 1; i >= start; i--) {
+            const addr = await launchpad.allLaunches(i);
+            const [c, tokName, tokSym, meta] = await Promise.all([
+              launchpad.curves(addr),
+              new ethers.Contract(addr, TOKEN_ABI, readProv).name(),
+              new ethers.Contract(addr, TOKEN_ABI, readProv).symbol(),
+              new ethers.Contract(addr, TOKEN_ABI, readProv).metadata()
+            ]);
+            fetched.push({
+              token: addr,
+              creator: c.creator,
+              name: tokName,
+              symbol: tokSym,
+              logoURI: meta.logoURI,
+              website: meta.website,
+              twitter: meta.twitter,
+              telegram: meta.telegram,
+              description: meta.description,
+              virtualBnbReserve: Number(ethers.formatEther(c.virtualBnbReserve)),
+              virtualTokenReserve: Number(ethers.formatEther(c.virtualTokenReserve)),
+              realBnbRaised: Number(ethers.formatEther(c.realBnbRaised)),
+              targetBnb: Number(ethers.formatEther(c.targetBnb)),
+              burnLp: c.burnLp,
+              graduated: c.graduated
+            });
+          }
+          liveCurves = fetched;
+        } catch (err) {
+          console.warn("RPC read warning:", err);
+        }
+      }
+
+      if (!liveCurves.length) {
+        grid.innerHTML = `
+          <div class="col-span-full rounded-2xl border border-white/[0.07] bg-[#090B0F] p-10 text-center space-y-3">
+            <div class="text-3xl">🚀</div>
+            <h3 class="text-sm font-extrabold text-white">No Bonding Curves Launched Yet</h3>
+            <p class="text-xs text-slate-400">Be the first creator to launch a coin on MintMelt's BSC bonding curve!</p>
+            <button type="button" onclick="switchTab('curve')" class="mint-melt-btn rounded-xl px-5 py-2.5 text-xs font-black text-[#0B0D10]">Launch First Token</button>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = liveCurves.map(c => {
+        const pct = Math.min(100, (c.realBnbRaised / Math.max(0.001, c.targetBnb)) * 100);
+        return `
+          <div onclick="openTokenTerminal('${c.token}')" class="obsidian-card cursor-pointer rounded-2xl p-4 space-y-3.5 hover:border-[#3EE8A5]/50 transition group">
+            <div class="flex items-center gap-3">
+              <img src="${c.logoURI || 'https://placehold.co/100x100/0B0D10/3EE8A5?text=M'}" onerror="this.src='https://placehold.co/100x100/0B0D10/3EE8A5?text=M'" class="h-12 w-12 rounded-xl border border-white/10 object-cover bg-[#0B0D10]" />
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <h3 class="truncate text-sm font-extrabold text-white group-hover:text-[#3EE8A5] transition">${escapeHtml(c.name)}</h3>
+                  <span class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#3EE8A5]">$${escapeHtml(c.symbol)}</span>
+                </div>
+                <p class="mt-0.5 truncate text-[11px] text-slate-400">${escapeHtml(c.description || 'Fair-launch bonding curve on MintMelt')}</p>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-[11px] font-semibold">
+                <span class="text-slate-400">${c.graduated ? '🎉 Graduated to PancakeSwap' : 'Bonding Progress'}</span>
+                <span class="font-mono text-[#3EE8A5]">${c.realBnbRaised.toFixed(2)} / ${c.targetBnb} BNB (${pct.toFixed(1)}%)</span>
+              </div>
+              <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-[#050608]">
+                <div class="h-full rounded-full bg-gradient-to-r from-[#3EE8A5] to-[#FF4747]" style="width: ${Math.max(2, pct)}%"></div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+              <span class="font-mono">Dev: ${c.creator.slice(0, 6)}...${c.creator.slice(-4)}</span>
+              <span class="font-bold text-[#3EE8A5] group-hover:underline">Open Chart & Trade →</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function openTokenTerminal(tokenAddr) {
+      activeTokenAddr = tokenAddr;
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('token', tokenAddr);
+        window.history.replaceState({}, '', url);
+      } catch (_) {}
+
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById('view-token').classList.remove('hidden');
+
+      await refreshActiveTokenTerminal();
+    }
+
+    function closeTokenTerminal() {
+      activeTokenAddr = null;
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('token');
+        window.history.replaceState({}, '', url);
+      } catch (_) {}
+      switchTab('explore');
+    }
+
+    async function refreshActiveTokenTerminal() {
+      if (!activeTokenAddr) return;
+      let data = liveCurves.find(c => c.token.toLowerCase() === activeTokenAddr.toLowerCase());
+      let trades = [];
+
+      if (!isSimulation) {
+        try {
+          const readProv  = new ethers.JsonRpcProvider(BSC_RPC);
+          const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, readProv);
+          const tok       = new ethers.Contract(activeTokenAddr, TOKEN_ABI, readProv);
+
+          const [c, name, symbol, meta] = await Promise.all([
+            launchpad.curves(activeTokenAddr),
+            tok.name(),
+            tok.symbol(),
+            tok.metadata()
+          ]);
+
+          data = {
+            token: activeTokenAddr,
+            creator: c.creator,
+            name, symbol,
+            logoURI: meta.logoURI,
+            website: meta.website,
+            twitter: meta.twitter,
+            telegram: meta.telegram,
+            description: meta.description,
+            virtualBnbReserve: Number(ethers.formatEther(c.virtualBnbReserve)),
+            virtualTokenReserve: Number(ethers.formatEther(c.virtualTokenReserve)),
+            realBnbRaised: Number(ethers.formatEther(c.realBnbRaised)),
+            targetBnb: Number(ethers.formatEther(c.targetBnb)),
+            burnLp: c.burnLp,
+            graduated: c.graduated
+          };
+
+          if (walletConnected && userAddress) {
+            const bal = await tok.balanceOf(userAddress);
+            document.getElementById('td-user-token-bal').innerText = Number(ethers.formatEther(bal)).toLocaleString(undefined, { maximumFractionDigits: 2 });
+          }
+
+          const latestBlock = await readProv.getBlockNumber();
+          const filter      = launchpad.filters.CurveTrade(activeTokenAddr);
+          const logs        = await launchpad.queryFilter(filter, Math.max(0, latestBlock - 4900), latestBlock);
+          trades = logs.map(l => ({
+            trader: l.args.trader,
+            isBuy: l.args.isBuy,
+            bnbAmount: Number(ethers.formatEther(l.args.bnbAmount)),
+            tokenAmount: Number(ethers.formatEther(l.args.tokenAmount)),
+            virtualBnb: Number(ethers.formatEther(l.args.virtualBnb)),
+            virtualTokens: Number(ethers.formatEther(l.args.virtualTokens)),
+            txHash: l.transactionHash
+          })).reverse();
+        } catch (err) {
+          console.warn("Terminal sync warning:", err);
+        }
+      }
+
+      if (!data) return;
+      activeTokenData = data;
+
+      document.getElementById('td-logo').src           = data.logoURI || 'https://placehold.co/120x120/0B0D10/3EE8A5?text=M';
+      document.getElementById('td-name').innerText     = data.name;
+      document.getElementById('td-symbol').innerText   = `$${data.symbol}`;
+      document.getElementById('td-ca').innerText       = `${data.token.slice(0, 8)}...${data.token.slice(-6)}`;
+      document.getElementById('td-creator').innerText  = `${data.creator.slice(0, 6)}...${data.creator.slice(-4)}`;
+      document.getElementById('td-desc').innerText     = data.description || `Fair-launch bonding curve for $${data.symbol} on MintMelt.`;
+      document.getElementById('td-bscscan-link').href  = `https://bscscan.com/token/${data.token}`;
+      document.getElementById('td-pcs-link').href      = `https://pancakeswap.finance/swap?outputCurrency=${data.token}`;
+
+      const price = data.virtualTokenReserve > 0 ? (data.virtualBnbReserve / data.virtualTokenReserve) : 0;
+      const mcap  = price * 1_000_000_000;
+      document.getElementById('td-price').innerText    = `${price.toFixed(10)} BNB`;
+      document.getElementById('td-mcap').innerText     = `${mcap.toFixed(2)} BNB`;
+      document.getElementById('td-liq').innerText      = `${data.virtualBnbReserve.toFixed(2)} BNB`;
+      document.getElementById('td-lp-badge').innerText = data.burnLp ? "🔥 Auto-Burn" : "👤 Creator LP";
+
+      const pct = Math.min(100, (data.realBnbRaised / Math.max(0.001, data.targetBnb)) * 100);
+      document.getElementById('td-progress-pct').innerText = `${pct.toFixed(1)}% (${data.realBnbRaised.toFixed(2)}/${data.targetBnb} BNB)`;
+      document.getElementById('td-progress-bar').style.width = `${Math.max(2, pct)}%`;
+      document.getElementById('td-progress-sub').innerHTML = `When <strong class="text-white">${data.targetBnb} BNB</strong> is raised, all remaining tokens and BNB automatically migrate to PancakeSwap V2.`;
+
+      const socials = [];
+      if (data.website)  socials.push(`<a href="${data.website.startsWith('http') ? data.website : 'https://' + data.website}" target="_blank" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-slate-300 hover:border-[#3EE8A5]">🌐 Website</a>`);
+      if (data.twitter)  socials.push(`<a href="https://x.com/${data.twitter.replace('@','')}" target="_blank" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-slate-300 hover:border-[#3EE8A5]">𝕏 Twitter</a>`);
+      if (data.telegram) socials.push(`<a href="${data.telegram.startsWith('http') ? data.telegram : 'https://' + data.telegram}" target="_blank" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-slate-300 hover:border-[#3EE8A5]">✈️ Telegram</a>`);
+      document.getElementById('td-socials').innerHTML = socials.join('');
+
+      if (data.graduated) {
+        document.getElementById('td-status-badge').innerText = "Graduated (PancakeSwap)";
+        document.getElementById('td-graduated-panel').classList.remove('hidden');
+        document.getElementById('td-swap-form').classList.add('hidden');
+      } else {
+        document.getElementById('td-status-badge').innerText = "Bonding Active";
+        document.getElementById('td-graduated-panel').classList.add('hidden');
+        document.getElementById('td-swap-form').classList.remove('hidden');
+      }
+
+      document.getElementById('td-trades-count').innerText = trades.length;
+      const tbody = document.getElementById('td-trades-body');
+      tbody.innerHTML = trades.length ? trades.map(t => `
+        <tr>
+          <td class="py-2 pr-3 text-slate-300">${t.trader.slice(0, 6)}...${t.trader.slice(-4)}</td>
+          <td class="py-2 px-3 font-bold ${t.isBuy ? 'text-[#3EE8A5]' : 'text-[#FF4747]'}">${t.isBuy ? 'BUY' : 'SELL'}</td>
+          <td class="py-2 px-3 text-white">${t.bnbAmount.toFixed(4)}</td>
+          <td class="py-2 px-3 text-slate-300">${t.tokenAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+          <td class="py-2 pl-3 text-right"><a href="https://bscscan.com/tx/${t.txHash}" target="_blank" class="text-[#3EE8A5] hover:underline">↗</a></td>
+        </tr>
+      `).join('') : `<tr><td colspan="5" class="py-4 text-center text-slate-500">No recent trades in the last 5,000 blocks. Be the first to trade!</td></tr>`;
+
+      drawBondingChart(data, trades);
+      await renderTokenChatFeed();
+    }
+
+    function drawBondingChart(data, trades) {
+      const canvas = document.getElementById('td-chart-canvas');
+      if (!canvas) return;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width  = Math.max(300, rect.width - 16);
+      canvas.height = Math.max(180, rect.height - 16);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const startVbnb = (data.targetBnb * 5) / 3;
+      const startPrice = startVbnb / 1_000_000_000;
+      const curPrice   = data.virtualTokenReserve > 0 ? data.virtualBnbReserve / data.virtualTokenReserve : startPrice;
+
+      let points = [startPrice];
+      if (trades.length > 0) {
+        const chronological = [...trades].reverse();
+        chronological.forEach(t => {
+          if (t.virtualTokens > 0) points.push(t.virtualBnb / t.virtualTokens);
+        });
+      }
+      points.push(curPrice);
+
+      const minP = Math.min(...points) * 0.96;
+      const maxP = Math.max(...points) * 1.04 || startPrice * 1.1;
+      const pad  = 18;
+      const w    = canvas.width - pad * 2;
+      const h    = canvas.height - pad * 2;
+
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth   = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad + (h / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(pad + w, y);
+        ctx.stroke();
+      }
+
+      const grad = ctx.createLinearGradient(0, pad, 0, pad + h);
+      grad.addColorStop(0, "rgba(62, 232, 165, 0.32)");
+      grad.addColorStop(1, "rgba(62, 232, 165, 0.0)");
+
+      ctx.beginPath();
+      points.forEach((p, idx) => {
+        const x = pad + (idx / Math.max(1, points.length - 1)) * w;
+        const y = pad + h - ((p - minP) / Math.max(1e-18, maxP - minP)) * h;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = "#3EE8A5";
+      ctx.lineWidth   = 2.5;
+      ctx.stroke();
+
+      ctx.lineTo(pad + w, pad + h);
+      ctx.lineTo(pad, pad + h);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    function setTradeSide(side) {
+      activeTradeSide = side;
+      const buyBtn   = document.getElementById('td-mode-buy');
+      const sellBtn  = document.getElementById('td-mode-sell');
+      const buyWrap  = document.getElementById('td-buy-btn-wrap');
+      const sellWrap = document.getElementById('td-sell-btn-wrap');
+      const unit     = document.getElementById('td-input-unit');
+      const label    = document.getElementById('td-input-label');
+
+      if (side === 'buy') {
+        buyBtn.className  = "rounded-lg bg-[#3EE8A5] py-2.5 text-xs font-black text-[#0B0D10] transition";
+        sellBtn.className = "rounded-lg py-2.5 text-xs font-black text-slate-400 hover:text-white transition";
+        buyWrap.classList.remove('hidden');
+        sellWrap.classList.add('hidden');
+        unit.innerText  = "BNB";
+        unit.className  = "absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-xs font-extrabold text-[#3EE8A5]";
+        label.innerText = "Amount (BNB)";
+      } else {
+        sellBtn.className = "rounded-lg bg-[#FF4747] py-2.5 text-xs font-black text-white transition";
+        buyBtn.className  = "rounded-lg py-2.5 text-xs font-black text-slate-400 hover:text-white transition";
+        sellWrap.classList.remove('hidden');
+        buyWrap.classList.add('hidden');
+        unit.innerText  = activeTokenData ? activeTokenData.symbol : "TOK";
+        unit.className  = "absolute right-3.5 top-1/2 -translate-y-1/2 font-mono text-xs font-extrabold text-[#FF4747]";
+        label.innerText = `Amount (${activeTokenData ? activeTokenData.symbol : 'Tokens'})`;
+      }
+      document.getElementById('td-amount-input').value = "";
+      updateTradeQuote();
+    }
+
+    function setTradeQuickAmount(val) {
+      if (activeTradeSide === 'buy') {
+        document.getElementById('td-amount-input').value = val;
+      } else {
+        const rawBal = parseFloat(document.getElementById('td-user-token-bal').innerText.replace(/,/g, '')) || 0;
+        document.getElementById('td-amount-input').value = Math.floor(rawBal * val);
+      }
+      updateTradeQuote();
+    }
+
+    function updateTradeQuote() {
+      const amt = parseFloat(document.getElementById('td-amount-input').value) || 0;
+      const outEl = document.getElementById('td-quote-out');
+      if (!activeTokenData || amt <= 0) {
+        outEl.innerText = "0.00";
+        return;
+      }
+      if (activeTradeSide === 'buy') {
+        const netBnb = amt * 0.99;
+        const estTok = (netBnb * activeTokenData.virtualTokenReserve) / (activeTokenData.virtualBnbReserve + netBnb);
+        outEl.innerText = `${estTok.toLocaleString(undefined, { maximumFractionDigits: 2 })} $${activeTokenData.symbol}`;
+      } else {
+        const grossBnb = (amt * activeTokenData.virtualBnbReserve) / (activeTokenData.virtualTokenReserve + amt);
+        const netBnb   = grossBnb * 0.99;
+        outEl.innerText = `${netBnb.toFixed(5)} BNB`;
+      }
+    }
+
+    async function executeTerminalBuy() {
+      const amt = parseFloat(document.getElementById('td-amount-input').value) || 0;
+      if (!activeTokenAddr || amt <= 0) {
+        showStatus("Enter a valid BNB buy amount.", null, true);
+        return;
+      }
+      if (!walletConnected) {
+        await handleWalletClick();
+        if (!walletConnected) return;
+      }
+      try {
+        showStatus("Confirm buy order in your wallet...");
+        const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer);
+        const tx = await launchpad.buy(activeTokenAddr, 0, { value: ethers.parseEther(amt.toString()) });
+        showStatus("Buy transaction sent! Waiting for confirmation...", tx.hash);
+        await tx.wait();
+        showStatus(`Bought $${activeTokenData.symbol} on the bonding curve!`, tx.hash);
+        await refreshActiveTokenTerminal();
+      } catch (err) {
+        showStatus(err.reason || err.message || "Buy failed", null, true);
+      }
+    }
+
+    async function approveTerminalSell() {
+      if (!activeTokenAddr) return;
+      if (!walletConnected) {
+        await handleWalletClick();
+        if (!walletConnected) return;
+      }
+      try {
+        showStatus("Approve token spending for bonding curve...");
+        const tok = new ethers.Contract(activeTokenAddr, TOKEN_ABI, signer);
+        const tx  = await tok.approve(LAUNCHPAD_ADDRESS, ethers.MaxUint256);
+        await tx.wait();
+        showStatus("Approved! Now click '2. Sell Tokens'.", tx.hash);
+      } catch (err) {
+        showStatus(err.reason || err.message || "Approval failed", null, true);
+      }
+    }
+
+    async function executeTerminalSell() {
+      const amt = parseFloat(document.getElementById('td-amount-input').value) || 0;
+      if (!activeTokenAddr || amt <= 0) {
+        showStatus("Enter a valid token amount to sell.", null, true);
+        return;
+      }
+      if (!walletConnected) {
+        await handleWalletClick();
+        if (!walletConnected) return;
+      }
+      try {
+        showStatus("Confirm sell order in your wallet...");
+        const launchpad = new ethers.Contract(LAUNCHPAD_ADDRESS, LAUNCHPAD_ABI, signer);
+        const tx = await launchpad.sell(activeTokenAddr, ethers.parseEther(amt.toString()), 0);
+        showStatus("Sell transaction sent! Waiting for confirmation...", tx.hash);
+        await tx.wait();
+        showStatus(`Sold $${activeTokenData.symbol} for BNB!`, tx.hash);
+        await refreshActiveTokenTerminal();
+      } catch (err) {
+        showStatus(err.reason || err.message || "Sell failed (did you click 1. Approve first?)", null, true);
+      }
+    }
+
+    function copyCurrentTokenAddress() {
+      if (!activeTokenAddr) return;
+      const tmp = document.createElement('textarea');
+      tmp.value = activeTokenAddr;
+      document.body.appendChild(tmp);
+      tmp.select();
+      document.execCommand('copy');
+      document.body.removeChild(tmp);
+      showStatus(`Copied Contract Address: ${activeTokenAddr}`);
+    }
+
+    function shareTokenLink() {
+      if (!activeTokenAddr) return;
+      const shareUrl = `${window.location.origin}${window.location.pathname}?token=${activeTokenAddr}`;
+      const tmp = document.createElement('textarea');
+      tmp.value = shareUrl;
+      document.body.appendChild(tmp);
+      tmp.select();
+      document.execCommand('copy');
+      document.body.removeChild(tmp);
+      showStatus(`Copied shareable token terminal link: ${shareUrl}`);
+    }
+
     // =========================================================================
     // TOKEN PAGE LIVE CHAT / THREAD ENGINE (GLOBAL SUPABASE + LOCAL CACHE)
     // =========================================================================
@@ -920,13 +1994,13 @@
       const trdPanel  = document.getElementById('td-panel-trades');
 
       if (tab === 'chat') {
-        chatTab.className = "rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-extrabold text-[#3EE8A5] transition flex items-center gap-1.5";
+        chatTab.className   = "rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-extrabold text-[#3EE8A5] transition flex items-center gap-1.5";
         tradesTab.className = "rounded-lg px-3 py-1.5 text-xs font-extrabold text-slate-400 hover:text-white transition flex items-center gap-1.5";
         chatPanel.classList.remove('hidden');
         trdPanel.classList.add('hidden');
       } else {
         tradesTab.className = "rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-extrabold text-[#3EE8A5] transition flex items-center gap-1.5";
-        chatTab.className = "rounded-lg px-3 py-1.5 text-xs font-extrabold text-slate-400 hover:text-white transition flex items-center gap-1.5";
+        chatTab.className   = "rounded-lg px-3 py-1.5 text-xs font-extrabold text-slate-400 hover:text-white transition flex items-center gap-1.5";
         trdPanel.classList.remove('hidden');
         chatPanel.classList.add('hidden');
       }
@@ -1022,7 +2096,6 @@
       const isVerified = verifiedSig || isSimulation;
       const normalized = activeTokenAddr.toLowerCase();
 
-      // Save locally immediately for instant feedback
       const localMsgs = loadLocalTokenChatMessages(normalized);
       localMsgs.unshift({
         id: Date.now(),
@@ -1036,7 +2109,6 @@
       input.value = "";
       await renderTokenChatFeed(true);
 
-      // Push to Supabase so all global users see it
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/token_comments`, {
           method: "POST",
@@ -1058,7 +2130,7 @@
         await renderTokenChatFeed();
         showStatus("Comment posted globally to token thread!");
       } catch (err) {
-        showStatus("Comment saved locally (check Supabase SQL table if not syncing globally).", null, true);
+        showStatus("Comment saved locally (run the SQL table in Supabase to enable global sync).", null, true);
       }
     }
 
@@ -1108,4 +2180,182 @@
         `;
       }).join('');
     }
-// ... existing code ... -->
+
+    // =========================================================================
+    // LP & TEAM TOKEN LOCKER
+    // =========================================================================
+    async function approveLocker() {
+      const tokenAddr = document.getElementById('l-token').value.trim();
+      if (!ethers.isAddress(tokenAddr)) {
+        showStatus("Enter a valid BEP-20 or LP Pair contract address.", null, true);
+        return;
+      }
+      if (!walletConnected) {
+        await handleWalletClick();
+        if (!walletConnected) return;
+      }
+      try {
+        showStatus("Approving MintMelt Vault in your wallet...");
+        const tok = new ethers.Contract(tokenAddr, TOKEN_ABI, signer);
+        const tx  = await tok.approve(LOCKER_ADDRESS, ethers.MaxUint256);
+        await tx.wait();
+        showStatus("Approved! Now click '2. Lock On-Chain (0.08 BNB)'.", tx.hash);
+      } catch (err) {
+        showStatus(err.reason || err.message || "Approval failed", null, true);
+      }
+    }
+
+    async function lockTokens() {
+      const tokenAddr = document.getElementById('l-token').value.trim();
+      const amount    = document.getElementById('l-amount').value.trim();
+      const days      = parseInt(document.getElementById('l-days').value) || 180;
+
+      if (!ethers.isAddress(tokenAddr) || !amount || Number(amount) <= 0) {
+        showStatus("Enter a valid token address and lock amount.", null, true);
+        return;
+      }
+      if (!walletConnected) {
+        await handleWalletClick();
+        if (!walletConnected) return;
+      }
+
+      try {
+        showStatus("Confirm 0.08 BNB lock transaction in your wallet...");
+        const tok      = new ethers.Contract(tokenAddr, TOKEN_ABI, provider);
+        const decimals = await tok.decimals().catch(() => 18);
+        const rawAmt   = ethers.parseUnits(amount, decimals);
+        const unlockTs = Math.floor(Date.now() / 1000) + days * 86400;
+
+        const locker = new ethers.Contract(LOCKER_ADDRESS, LOCKER_ABI, signer);
+        const tx     = await locker.lockTokens(tokenAddr, rawAmt, unlockTs, { value: ethers.parseEther("0.08") });
+        showStatus("Locking tokens on-chain...", tx.hash);
+        await tx.wait();
+        showStatus(`Tokens locked on-chain for ${days} days!`, tx.hash);
+        await refreshLocksList();
+      } catch (err) {
+        showStatus(err.reason || err.message || "Lock failed (did you click 1. Approve Token first?)", null, true);
+      }
+    }
+
+    async function refreshLocksList() {
+      const container = document.getElementById('locks-list');
+      if (!walletConnected || !userAddress || isSimulation) {
+        container.innerHTML = `<div class="rounded-xl border border-white/[0.06] bg-[#151820] p-4 text-center text-xs text-slate-400">Connect your wallet to view your active on-chain LP & token locks.</div>`;
+        return;
+      }
+      try {
+        const readProv = new ethers.JsonRpcProvider(BSC_RPC);
+        const locker   = new ethers.Contract(LOCKER_ADDRESS, LOCKER_ABI, readProv);
+        const found    = [];
+        for (let i = 0; i < 25; i++) {
+          try {
+            const lockId = await locker.userLocks(userAddress, i);
+            const l = await locker.locks(lockId);
+            found.push(l);
+          } catch (_) { break; }
+        }
+        if (!found.length) {
+          container.innerHTML = `<div class="rounded-xl border border-white/[0.06] bg-[#151820] p-4 text-center text-xs text-slate-400">No active locks found for this wallet.</div>`;
+          return;
+        }
+        container.innerHTML = found.map(l => {
+          const unlockDate = new Date(Number(l.unlockTime) * 1000).toLocaleDateString();
+          const canUnlock  = !l.withdrawn && (Date.now() / 1000) >= Number(l.unlockTime);
+          return `
+            <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-[#151820] p-3.5 text-xs">
+              <div>
+                <div class="font-mono font-bold text-white">Lock #${l.id} • ${l.token.slice(0, 8)}...${l.token.slice(-6)}</div>
+                <div class="text-slate-400">Amount: <span class="font-mono text-[#3EE8A5]">${ethers.formatEther(l.amount)}</span> • Unlocks: <strong class="text-white">${unlockDate}</strong></div>
+              </div>
+              ${l.withdrawn
+                ? `<span class="rounded bg-white/10 px-2.5 py-1 text-[11px] text-slate-400">Withdrawn</span>`
+                : canUnlock
+                  ? `<button type="button" onclick="unlockTokensById(${l.id})" class="mint-btn rounded-lg px-3 py-1.5 font-black text-[#0B0D10]">Unlock Now</button>`
+                  : `<span class="rounded bg-[#F0B90B]/15 px-2.5 py-1 font-mono text-[11px] font-bold text-[#F0B90B]">🔒 Locked</span>`
+              }
+            </div>
+          `;
+        }).join('');
+      } catch (_) {}
+    }
+
+    async function unlockTokensById(lockId) {
+      try {
+        const locker = new ethers.Contract(LOCKER_ADDRESS, LOCKER_ABI, signer);
+        const tx = await locker.unlockTokens(lockId);
+        await tx.wait();
+        showStatus(`Lock #${lockId} unlocked and withdrawn!`, tx.hash);
+        await refreshLocksList();
+      } catch (err) {
+        showStatus(err.reason || err.message || "Unlock failed", null, true);
+      }
+    }
+
+    // =========================================================================
+    // POST-LAUNCH ON-CHAIN LOGO & METADATA UPDATER
+    // =========================================================================
+    function populateMetadataDropdown() {
+      const sel = document.getElementById('u-select');
+      const all = [
+        ...liveCurves.map(c => ({ address: c.token, name: c.name, symbol: c.symbol })),
+        ...standardTokens
+      ];
+      sel.innerHTML = `<option value="">-- Choose a token or paste address below --</option>` +
+        all.map(t => `<option value="${t.address}">${escapeHtml(t.name)} ($${escapeHtml(t.symbol)}) — ${t.address.slice(0, 8)}...</option>`).join('');
+    }
+
+    function jumpToMetaEditor(addr) {
+      switchTab('logo');
+      document.getElementById('u-token').value = addr;
+    }
+
+    function selectTokenForMetaEdit(addr) {
+      if (addr) document.getElementById('u-token').value = addr;
+    }
+
+    async function updateTokenMetadata() {
+      const tokenAddr = document.getElementById('u-token').value.trim();
+      const logo      = document.getElementById('u-logo').value.trim();
+      const web       = document.getElementById('u-web').value.trim();
+      const x         = document.getElementById('u-x').value.trim();
+      const tg        = document.getElementById('u-tg').value.trim();
+      const desc      = document.getElementById('u-desc').value.trim();
+
+      if (!ethers.isAddress(tokenAddr) || !logo) {
+        showStatus("Enter a valid Token Contract Address and Logo Image.", null, true);
+        return;
+      }
+      if (!walletConnected) {
+        await handleWalletClick();
+        if (!walletConnected) return;
+      }
+
+      try {
+        showStatus("Confirm on-chain metadata update (0.02 BNB) in your wallet...");
+        const tok = new ethers.Contract(tokenAddr, TOKEN_ABI, signer);
+        const tx  = await tok.updateMetadata(logo, web, x, tg, desc, { value: ethers.parseEther("0.02") });
+        showStatus("Updating token metadata on BSC...", tx.hash);
+        await tx.wait();
+        showStatus("On-chain token logo & social links updated!", tx.hash);
+      } catch (err) {
+        showStatus(err.reason || err.message || "Metadata update failed (only token creator can update)", null, true);
+      }
+    }
+
+    // =========================================================================
+    // INITIALIZE ON PAGE LOAD
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', async () => {
+      syncCurvePreview();
+      updateFactoryPrice();
+      await loadOnChainCurves();
+
+      const params = new URLSearchParams(window.location.search);
+      const tokenParam = params.get('token');
+      if (tokenParam && ethers.isAddress(tokenParam)) {
+        await openTokenTerminal(tokenParam);
+      }
+    });
+  </script>
+</body>
+</html>
