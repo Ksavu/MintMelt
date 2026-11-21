@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MintMelt — MINT TOKENS • MELT JEETS</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B0D10'/%3E%3Ccircle cx='32' cy='26' r='17' fill='%233EE8A5'/%3E%3Cpath d='M25 32V20l7 7 7-7v12' fill='none' stroke='%230B0D10' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16 41c4 5 10 8 16 8s12-3 16-8' fill='none' stroke='%23FF4747' stroke-width='3.6' stroke-linecap='round'/%3E%3Cline x1='32' y1='49' x2='32' y2='56' stroke='%23FF4747' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            void: '#050608',
+            glass: '#090B0F',
+            surface: '#151820',
+            mint: '#3EE8A5',
+            melt: '#FF4747',
+            bnb: '#F0B90B',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #050608; color: #f1f5f9; }
+    .obsidian-card {
+      background: rgba(9, 11, 15, 0.88);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .obsidian-input {
+      background: #151820;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      transition: all 0.15s ease;
+    }
+    .obsidian-input:focus {
+      outline: none;
+      border-color: #3EE8A5;
+      box-shadow: 0 0 0 3px rgba(62, 232, 165, 0.14);
+    }
+    .mint-melt-btn {
+      background: linear-gradient(135deg, #3EE8A5 0%, #27D896 55%, #FF4747 135%);
+      box-shadow: 0 8px 25px -5px rgba(62, 232, 165, 0.28);
+    }
+    .mint-melt-btn:hover:not(:disabled) {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+    .mint-btn {
+      background: #3EE8A5;
+      box-shadow: 0 6px 20px -4px rgba(62, 232, 165, 0.3);
+    }
+    .mint-btn:hover:not(:disabled) {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #050608; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 999px; }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-[#3EE8A5]/30 selection:text-[#3EE8A5] overflow-x-hidden">
+
+  <!-- Ambient Mint & Melt-Red Glows -->
+  <div class="pointer-events-none fixed inset-0 overflow-hidden z-0">
+    <div class="absolute -top-36 left-1/4 h-[440px] w-[440px] rounded-full bg-[#3EE8A5]/10 blur-[150px]"></div>
+    <div class="absolute top-1/3 right-1/5 h-[400px] w-[400px] rounded-full bg-[#FF4747]/10 blur-[150px]"></div>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 border-b border-white/[0.06] bg-[#090B0F]/90 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6">
+      <div class="flex items-center gap-6">
+        <!-- Finalized Primary Mark Lockup -->
+        <a href="#top" onclick="switchTab('curve')" class="flex items-center gap-3 group">
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#0B0D10] shadow-lg shadow-[#3EE8A5]/10 group-hover:border-[#3EE8A5]/40 transition">
+            <!-- Custom SVG App Icon: Solid #3EE8A5 Mint Coin stamped with M + #FF4747 dripping crescent -->
+            <svg viewBox="0 0 64 64" class="h-9 w-9">
+              <circle cx="32" cy="25" r="17.5" fill="#3EE8A5" />
+              <circle cx="32" cy="25" r="14" fill="none" stroke="#0B0D10" stroke-opacity="0.18" stroke-width="1.5" />
+              <path d="M24.5 31.5V19l7.5 7.5L39.5 19v12.5" fill="none" stroke="#0B0D10" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M15 39.5c4.2 5.2 10.3 8.2 17 8.2s12.8-3 17-8.2" fill="none" stroke="#FF4747" stroke-width="3.4" stroke-linecap="round" />
+              <line x1="23" y1="45.5" x2="23" y2="51.5" stroke="#FF4747" stroke-width="3.6" stroke-linecap="round" />
+              <circle cx="23" cy="56" r="1.8" fill="#FF4747" />
+              <line x1="32" y1="47.8" x2="32" y2="55.5" stroke="#FF4747" stroke-width="4" stroke-linecap="round" />
+              <circle cx="32" cy="60.5" r="2.1" fill="#FF4747" />
+              <line x1="41" y1="45.2" x2="41" y2="49.5" stroke="#FF4747" stroke-width="3.4" stroke-linecap="round" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 leading-none">
+              <span class="text-xl font-black tracking-tight">
+                <span class="text-[#3EE8A5]">Mint</span><span class="text-[#FF4747]">Melt</span>
+              </span>
+              <span class="rounded border border-[#F0B90B]/30 bg-[#F0B90B]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#F0B90B]">BSC</span>
+            </div>
+            <p class="mt-1 text-[9px] font-extrabold tracking-[0.16em] text-slate-400 uppercase">
+              MINT TOKENS • MELT JEETS
+            </p>
+          </div>
+        </a>
+
+        <!-- Desktop Tabs -->
+        <nav class="hidden lg:flex items-center gap-1 rounded-xl border border-white/[0.06] bg-[#050608] p-1">
+          <button onclick="switchTab('curve')" id="tab-curve" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold bg-[#151820] text-[#3EE8A5] transition">Bonding Launchpad</button>
+          <button onclick="switchTab('factory')" id="tab-factory" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">Token Factory</button>
+          <button onclick="switchTab('explore')" id="tab-explore" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
+            Live Curves
+            <span id="live-curve-count" class="rounded-full bg-[#3EE8A5]/20 px-1.5 py-0.2 text-[10px] font-mono text-[#3EE8A5]">3</span>
+          </button>
+          <button onclick="switchTab('locker')" id="tab-locker" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">LP Locker</button>
+          <button onclick="switchTab('logo')" id="tab-logo" class="nav-tab rounded-lg px-3.5 py-1.5 text-xs font-bold text-slate-400 hover:text-white transition">Update Logo</button>
+        </nav>
+      </div>
+
+      <!-- Right Controls: Mode Badge + Wallet -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <button onclick="toggleSimulationMode()" id="mode-pill" title="Toggle between Live BSC Mainnet RPC and Preview Sandbox" class="hidden sm:flex items-center gap-2 rounded-xl border border-[#F0B90B]/30 bg-[#F0B90B]/10 px-3 py-1.5 text-xs font-semibold text-[#F0B90B] hover:bg-[#F0B90B]/20 transition">
+          <span id="net-dot" class="h-2 w-2 rounded-full bg-[#F0B90B] animate-pulse"></span>
+          <span id="net-label">BSC Mainnet RPC</span>
+        </button>
+
+        <div id="wallet-balance-box" class="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] bg-[#151820] px-3 py-2 font-mono text-xs font-bold text-[#F0B90B]">
+          <span id="wallet-bnb">4.2500</span> BNB
+        </div>
+
+        <button onclick="handleWalletClick()" id="connect-btn" class="mint-btn rounded-xl px-4 py-2 text-xs font-black text-[#0B0D10] transition">
+          Connect Wallet
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile / Tablet Tab Bar -->
+    <div class="flex lg:hidden overflow-x-auto gap-1.5 border-t border-white/[0.05] px-4 py-2 bg-[#050608]">
+      <button onclick="switchTab('curve')" id="mtab-curve" class="mnav-tab rounded-lg bg-[#151820] px-3 py-1.5 text-xs font-bold text-[#3EE8A5] whitespace-nowrap">Bonding Curve</button>
+      <button onclick="switchTab('factory')" id="mtab-factory" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Factory</button>
+      <button onclick="switchTab('explore')" id="mtab-explore" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Live Curves (3)</button>
+      <button onclick="switchTab('locker')" id="mtab-locker" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">LP Locker</button>
+      <button onclick="switchTab('logo')" id="mtab-logo" class="mnav-tab rounded-lg px-3 py-1.5 text-xs font-bold text-slate-400 whitespace-nowrap">Update Logo</button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6">
+
+    <!-- Hero Banner featuring Stacked Wordmark + Creator Fee Split Pills -->
+    <div class="obsidian-card mb-6 flex flex-col justify-between gap-6 rounded-2xl p-5 sm:p-6 lg:flex-row lg:items-center">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+        <!-- Stacked Wordmark SVG Lockup (MINT / Dripping Red Bar / MELT with Notched E) -->
+        <div class="shrink-0 rounded-2xl border border-white/[0.07] bg-[#0B0D10] px-4 py-3 flex flex-col items-center justify-center">
+          <svg viewBox="0 0 180 96" class="h-16 w-32">
+            <!-- MINT -->
+            <text x="90" y="30" text-anchor="middle" fill="#3EE8A5" font-family="Inter, sans-serif" font-weight="900" font-size="34" letter-spacing="3">MINT</text>
+            <!-- Red Dripping Divider Bar -->
+            <rect x="10" y="39" width="160" height="6" rx="3" fill="#FF4747" />
+            <rect x="30" y="43" width="6" height="12" rx="3" fill="#FF4747" />
+            <rect x="66" y="43" width="5" height="8" rx="2.5" fill="#FF4747" />
+            <rect x="112" y="43" width="6" height="15" rx="3" fill="#FF4747" />
+            <rect x="148" y="43" width="5" height="7" rx="2.5" fill="#FF4747" />
+            <!-- MELT -->
+            <text x="90" y="88" text-anchor="middle" fill="#FF4747" font-family="Inter, sans-serif" font-weight="900" font-size="34" letter-spacing="3">MELT</text>
+          </svg>
+        </div>
+
+        <div>
+          <div class="mb-1 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#3EE8A5]">
+            <span>⚡ Cryptobarlounge.space • BSC Forge & Curve Engine</span>
+          </div>
+          <h1 class="text-xl font-black tracking-tight text-white sm:text-2xl">
+            Mint Coins Whole. <span class="text-[#FF4747]">Melt the Jeets</span> on the Curve.
+          </h1>
+          <p class="mt-1 max-w-xl text-xs sm:text-sm text-slate-400">
+            Zero-code BEP-20 deployment with on-chain updatable logos, PancakeSwap V2 auto-graduation, and built-in creator revenue sharing.
+          </p>
+        </div>
+      </div>
+
+      <!-- Economics & Creator Fee Split Badges -->
+      <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2.5 text-xs">
+        <div class="rounded-xl border border-white/[0.07] bg-[#151820] px-3.5 py-2.5">
+          <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Launch Fee</div>
+          <div class="font-mono text-sm font-bold text-white">0.005 BNB</div>
+        </div>
+        <div class="rounded-xl border border-[#3EE8A5]/25 bg-[#3EE8A5]/[0.06] px-3.5 py-2.5">
+          <div class="text-[10px] font-semibold uppercase tracking-wider text-[#3EE8A5]">Trade Fee Split</div>
+          <div class="font-mono text-sm font-bold text-white">0.7% <span class="text-slate-400">/</span> <span class="text-[#3EE8A5]">0.3% Dev</span></div>
+        </div>
+        <div class="col-span-2 sm:col-span-1 rounded-xl border border-[#FF4747]/25 bg-[#FF4747]/[0.06] px-3.5 py-2.5">
+          <div class="text-[10px] font-semibold uppercase tracking-wider text-[#FF4747]">Graduation Split</div>
+          <div class="font-mono text-sm font-bold text-white">0.5 <span class="text-slate-400">+</span> <span class="text-[#3EE8A5]">0.2 BNB Dev</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast Banner -->
+    <div id="status-banner" class="hidden mb-6 rounded-xl border border-[#3EE8A5]/40 bg-[#3EE8A5]/10 p-4 text-xs font-semibold text-[#3EE8A5] flex flex-wrap items-center justify-between gap-2 transition-all">
+      <div class="flex items-center gap-2">
+        <span id="status-icon" class="text-base">✅</span>
+        <span id="status-text">Transaction confirmed on BNB Smart Chain!</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <a id="status-link" href="#" target="_blank" class="underline font-bold text-white hover:text-[#3EE8A5]">BscScan Tx ↗</a>
+        <button onclick="hideStatus()" class="text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         TAB 1: BONDING CURVE LAUNCHPAD
+    ========================================================== -->
+    <section id="view-curve" class="tab-view grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <!-- Left Form -->
+      <div class="obsidian-card space-y-5 rounded-2xl p-6 lg:col-span-7">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-base font-extrabold text-white">1. Bonding Curve Fair-Launch</h2>
+          <span class="rounded-md bg-[#3EE8A5]/15 px-2.5 py-0.5 text-[11px] font-bold text-[#3EE8A5]">80% Curve • 20% Auto-LP</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-slate-400">Token Name *</label>
+            <input id="c-name" oninput="syncCurvePreview()" placeholder="e.g. Melt Pepe" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-slate-400">Ticker Symbol *</label>
+            <input id="c-symbol" oninput="syncCurvePreview()" placeholder="e.g. MELT" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm uppercase text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1.5 flex flex-wrap justify-between text-xs font-semibold text-slate-400">
+            <span>On-Chain Logo Image URL (PNG / SVG / IPFS)</span>
+            <span class="text-[#3EE8A5]">Updatable later on-chain</span>
+          </label>
+          <input id="c-logo" oninput="syncCurvePreview()" placeholder="https://ipfs.io/ipfs/... or choose a quick preset below" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          <div class="mt-2 flex flex-wrap items-center gap-2">
+            <span class="text-[11px] text-slate-500">Quick Presets:</span>
+            <button type="button" onclick="setCurvePresetLogo('https://placehold.co/120x120/0B0D10/3EE8A5?text=MINT')" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:border-[#3EE8A5]">🟢 Mint Coin</button>
+            <button type="button" onclick="setCurvePresetLogo('https://placehold.co/120x120/0B0D10/FF4747?text=MELT')" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:border-[#FF4747]">🔴 Melt Jeets</button>
+            <button type="button" onclick="setCurvePresetLogo('https://placehold.co/120x120/0B0D10/F0B90B?text=BNB')" class="rounded-lg border border-white/10 bg-[#151820] px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:border-[#F0B90B]">⚡ BSC Bull</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1.5 block text-xs font-semibold text-slate-400">Description</label>
+          <textarea id="c-desc" oninput="syncCurvePreview()" rows="2" placeholder="Stored on-chain for CBL Scanner & DEX previews..." class="obsidian-input w-full rounded-xl px-3.5 py-2 text-sm text-white"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <input id="c-web" placeholder="Website URL" class="obsidian-input rounded-xl px-3 py-2 text-xs text-white" />
+          <input id="c-x" placeholder="X / Twitter (@handle)" class="obsidian-input rounded-xl px-3 py-2 text-xs text-white" />
+          <input id="c-tg" placeholder="Telegram (t.me/...)" class="obsidian-input rounded-xl px-3 py-2 text-xs text-white" />
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-1">
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-slate-400">PancakeSwap Graduation Target (BNB)</label>
+            <input id="c-target" type="number" value="18" min="1" max="200" oninput="syncCurvePreview()" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-xs font-semibold text-slate-400">Creator First Buy (BNB — Block 0)</label>
+            <input id="c-devbuy" type="number" step="0.05" value="0.25" min="0" oninput="syncCurvePreview()" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+          </div>
+        </div>
+
+        <label class="flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-[#151820] p-3.5 hover:border-white/20 transition">
+          <div>
+            <div class="text-xs font-bold text-white">🔥 Auto-Burn PancakeSwap LP on Graduation</div>
+            <div class="text-[11px] text-slate-400">Sends LP tokens to 0x000...dEaD + pays 0.2 BNB Creator Bonus automatically</div>
+          </div>
+          <input id="c-burnlp" type="checkbox" checked class="h-4 w-4 accent-[#3EE8A5]" />
+        </label>
+      </div>
+
+      <!-- Right Live Preview Column -->
+      <div class="lg:col-span-5">
+        <div class="obsidian-card sticky top-24 space-y-5 rounded-2xl p-6">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Live Card Preview</span>
+            <span class="rounded-full bg-[#3EE8A5]/15 px-2.5 py-0.5 text-[11px] font-bold text-[#3EE8A5]">0.3% Dev Fee Active</span>
+          </div>
+
+          <!-- Token Card -->
+          <div class="rounded-2xl border border-white/10 bg-[#151820] p-4 shadow-inner">
+            <div class="flex items-center gap-3.5">
+              <img id="prev-img" src="https://placehold.co/100x100/0B0D10/3EE8A5?text=M" onerror="this.src='https://placehold.co/100x100/0B0D10/3EE8A5?text=M'" class="h-14 w-14 rounded-2xl border border-white/10 object-cover bg-[#0B0D10]" />
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <h3 id="prev-name" class="truncate text-base font-extrabold text-white">Your Token Name</h3>
+                  <span id="prev-symbol" class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs font-bold text-[#3EE8A5]">$TICKER</span>
+                </div>
+                <p id="prev-desc" class="mt-1 line-clamp-2 text-xs text-slate-400">Fair-launch bonding curve with instant PancakeSwap migration.</p>
+              </div>
+            </div>
+
+            <div class="mt-4 border-t border-white/[0.06] pt-3">
+              <div class="flex justify-between text-[11px] font-semibold">
+                <span class="text-slate-400">Initial Curve Progress</span>
+                <span id="prev-progress-text" class="font-mono text-[#3EE8A5]">0.25 / 18 BNB (1.4%)</span>
+              </div>
+              <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-[#050608]">
+                <div id="prev-progress-bar" class="h-full rounded-full bg-gradient-to-r from-[#3EE8A5] to-[#FF4747] transition-all duration-300" style="width: 2%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cost Breakdown -->
+          <div class="space-y-2 rounded-xl border border-white/[0.06] bg-[#050608] p-4 text-xs">
+            <div class="flex justify-between text-slate-400">
+              <span>Launchpad Creation Fee</span>
+              <span class="font-mono font-bold text-white">0.0050 BNB</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Creator Initial Buy</span>
+              <span id="prev-devbuy" class="font-mono font-bold text-[#3EE8A5]">0.2500 BNB</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Your Creator Rewards</span>
+              <span class="font-mono font-bold text-[#FF4747]">0.3% Vol + 0.2 BNB Grad</span>
+            </div>
+            <div class="border-t border-white/[0.06] pt-2 flex justify-between text-sm font-black text-white">
+              <span>Total Payable</span>
+              <span id="prev-total" class="font-mono text-[#3EE8A5]">0.2550 BNB</span>
+            </div>
+          </div>
+
+          <button onclick="deployCurve()" class="mint-melt-btn w-full rounded-xl py-3.5 text-sm font-black text-[#0B0D10] transition">
+            🚀 Launch on MintMelt Curve
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         TAB 2: FULL-OPTION STANDARD TOKEN FACTORY
+    ========================================================== -->
+    <section id="view-factory" class="tab-view hidden space-y-6">
+      <div class="mx-auto max-w-3xl obsidian-card space-y-5 rounded-2xl p-6">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-extrabold text-white">Custom BEP-20 Token Factory (All Options)</h2>
+            <p class="text-xs text-slate-400">Mints 100% of supply to your wallet with optional Buy/Sell taxes, Max Wallet, Mint/Burn & Logo.</p>
+          </div>
+          <span class="rounded-lg bg-[#3EE8A5]/15 px-2.5 py-1 font-mono text-xs font-bold text-[#3EE8A5]">0.005 BNB</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-xs text-slate-400">Token Name *</label>
+            <input id="f-name" placeholder="e.g. CryptoBar Utility" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-slate-400">Ticker Symbol *</label>
+            <input id="f-symbol" placeholder="e.g. CBL" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm uppercase text-white" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-slate-400">Total Supply</label>
+            <input id="f-supply" type="number" value="1000000000" placeholder="Total Supply" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-slate-400">Decimals (6 - 18)</label>
+            <input id="f-decimals" type="number" value="18" min="6" max="18" placeholder="Decimals (18)" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs text-slate-400">On-Chain Logo Image URL (https://...)</label>
+          <input id="f-logo" placeholder="https://ipfs.io/ipfs/... or https://yourdomain.com/logo.png" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <input id="f-web" placeholder="Website URL" class="obsidian-input rounded-xl px-3 py-2 text-xs text-white" />
+          <input id="f-x" placeholder="Twitter / X" class="obsidian-input rounded-xl px-3 py-2 text-xs text-white" />
+          <input id="f-tg" placeholder="Telegram" class="obsidian-input rounded-xl px-3 py-2 text-xs text-white" />
+        </div>
+
+        <!-- Tax Sliders -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="rounded-xl border border-white/10 bg-[#151820] p-3.5">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-slate-400">Buy Tax (Auto-swaps to BNB)</span>
+              <span id="f-buytax-val" class="text-[#3EE8A5] font-mono">0%</span>
+            </div>
+            <input id="f-buytax" type="range" min="0" max="10" value="0" oninput="document.getElementById('f-buytax-val').innerText = this.value + '%'" class="mt-2 w-full accent-[#3EE8A5] cursor-pointer" />
+          </div>
+          <div class="rounded-xl border border-white/10 bg-[#151820] p-3.5">
+            <div class="flex justify-between text-xs font-bold">
+              <span class="text-slate-400">Sell Tax (Auto-swaps to BNB)</span>
+              <span id="f-selltax-val" class="text-[#FF4747] font-mono">0%</span>
+            </div>
+            <input id="f-selltax" type="range" min="0" max="10" value="0" oninput="document.getElementById('f-selltax-val').innerText = this.value + '%'" class="mt-2 w-full accent-[#FF4747] cursor-pointer" />
+          </div>
+        </div>
+
+        <!-- Anti-Whale Limits -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <label class="mb-1 block text-[11px] text-slate-400">Max Wallet (% Supply, 0=off)</label>
+            <input id="f-maxwal" type="number" value="0" min="0" max="100" class="obsidian-input w-full rounded-xl px-3 py-2 text-xs font-mono text-white" />
+          </div>
+          <div>
+            <label class="mb-1 block text-[11px] text-slate-400">Max Tx (% Supply, 0=off)</label>
+            <input id="f-maxtx" type="number" value="0" min="0" max="100" class="obsidian-input w-full rounded-xl px-3 py-2 text-xs font-mono text-white" />
+          </div>
+          <div>
+            <label class="mb-1 block text-[11px] text-slate-400">Tax Receiver Wallet</label>
+            <input id="f-taxwal" placeholder="0x... (defaults to you)" class="obsidian-input w-full rounded-xl px-3 py-2 text-xs font-mono text-white" />
+          </div>
+        </div>
+
+        <!-- Feature Flags -->
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs font-bold">
+          <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] p-3 cursor-pointer hover:border-[#3EE8A5]/40">
+            <input id="f-burn" type="checkbox" checked class="accent-[#3EE8A5]" /> Burnable
+          </label>
+          <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] p-3 cursor-pointer hover:border-[#3EE8A5]/40">
+            <input id="f-mint" type="checkbox" class="accent-[#3EE8A5]" /> Mintable
+          </label>
+          <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] p-3 cursor-pointer hover:border-[#3EE8A5]/40">
+            <input id="f-pause" type="checkbox" class="accent-[#3EE8A5]" /> Pausable
+          </label>
+          <label class="flex items-center gap-2 rounded-xl border border-white/10 bg-[#151820] p-3 cursor-pointer hover:border-[#3EE8A5]/40">
+            <input id="f-black" type="checkbox" class="accent-[#FF4747]" /> Anti-Bot List
+          </label>
+        </div>
+
+        <button onclick="deployStandard()" class="mint-btn w-full rounded-xl py-3.5 text-sm font-black text-[#0B0D10] transition">
+          ⚡ Deploy Standard BEP-20 Token (0.005 BNB)
+        </button>
+      </div>
+
+      <!-- My Deployed Standard Tokens List -->
+      <div class="mx-auto max-w-3xl obsidian-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-extrabold uppercase tracking-wider text-white">My Deployed Tokens</h3>
+          <span class="text-xs text-slate-400">Stored on-chain with instant Logo Updater</span>
+        </div>
+        <div id="standard-tokens-list" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         TAB 3: LIVE CURVES FEED
+    ========================================================== -->
+    <section id="view-explore" class="tab-view hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-extrabold uppercase tracking-wider text-white">Live MintMelt Bonding Curves</h2>
+          <p class="text-xs text-slate-400">Buy directly on the bonding curve. Once 100% bonded, liquidity migrates to PancakeSwap V2 automatically.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="switchTab('curve')" class="rounded-xl bg-[#3EE8A5]/15 border border-[#3EE8A5]/30 px-3.5 py-2 text-xs font-bold text-[#3EE8A5] hover:bg-[#3EE8A5] hover:text-[#0B0D10] transition">
+            + Launch New Coin
+          </button>
+          <button onclick="renderLiveCurves()" class="rounded-xl border border-white/10 bg-[#151820] px-3.5 py-2 text-xs font-bold text-slate-200 hover:border-[#3EE8A5]/50 transition">
+            ↻ Refresh Feed
+          </button>
+        </div>
+      </div>
+      <div id="curves-grid" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+
+    <!-- =========================================================
+         TAB 4: LP & TEAM TOKEN LOCKER
+    ========================================================== -->
+    <section id="view-locker" class="tab-view hidden space-y-6">
+      <div class="mx-auto max-w-xl obsidian-card space-y-4 rounded-2xl p-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-extrabold text-white">🔒 MintMelt LP & Team Vesting Vault</h2>
+          <span class="rounded bg-[#3EE8A5]/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#3EE8A5]">0.08 BNB Lock Fee</span>
+        </div>
+        <p class="text-xs text-slate-400">Approve your PancakeSwap V2 LP pair or BEP-20 token first, then lock it on-chain with verifiable unlock countdowns.</p>
+
+        <div>
+          <label class="mb-1 block text-xs text-slate-400">Token or PancakeSwap LP Pair Address</label>
+          <input id="l-token" placeholder="0x..." class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="mb-1 block text-xs text-slate-400">Amount to Lock</label>
+            <input id="l-amount" type="number" placeholder="1000000" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-slate-400">Lock Duration (Days)</label>
+            <input id="l-days" type="number" value="180" placeholder="180" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+          </div>
+        </div>
+
+        <!-- Vault Fee Breakdown -->
+        <div class="space-y-1.5 rounded-xl border border-white/[0.06] bg-[#050608] p-3.5 text-xs">
+          <div class="flex justify-between text-slate-400">
+            <span>MintMelt Vault Lock Fee (Flat)</span>
+            <span class="font-mono font-bold text-white">0.0800 BNB</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>Lock Extensions & Unlock</span>
+            <span class="font-mono font-semibold text-[#3EE8A5]">FREE (0.00 BNB)</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <button onclick="approveLocker()" id="btn-approve-lock" class="rounded-xl border border-white/15 bg-[#151820] py-3 text-xs font-bold text-white hover:border-[#3EE8A5] transition">
+            1. Approve Token
+          </button>
+          <button onclick="lockTokens()" class="mint-btn rounded-xl py-3 text-xs font-black text-[#0B0D10] transition">
+            2. Lock On-Chain (0.08 BNB)
+          </button>
+        </div>
+      </div>
+
+      <div class="mx-auto max-w-3xl obsidian-card rounded-2xl p-6">
+        <h3 class="mb-4 text-sm font-extrabold uppercase tracking-wider text-white">Active On-Chain Locks</h3>
+        <div id="locks-list" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         TAB 5: POST-LAUNCH LOGO & METADATA UPDATER
+    ========================================================== -->
+    <section id="view-logo" class="tab-view hidden mx-auto max-w-xl">
+      <div class="obsidian-card space-y-4 rounded-2xl p-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-extrabold text-white">🎨 Update On-Chain Token Logo & Socials</h2>
+          <span class="rounded bg-[#FF4747]/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#FF4747]">0.02 BNB Fee</span>
+        </div>
+        <p class="text-xs text-slate-400">Select one of your deployed tokens or paste a contract address to update its on-chain <code class="text-[#3EE8A5]">logoURI</code> and links anytime.</p>
+
+        <div>
+          <label class="mb-1 block text-xs text-slate-400">Select Deployed Token (Quick Fill)</label>
+          <select id="u-select" onchange="selectTokenForMetaEdit(this.value)" class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-xs text-white">
+            <option value="">-- Choose a token or paste address below --</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs text-slate-400">Token Contract Address *</label>
+          <input id="u-token" placeholder="0x..." class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm font-mono text-white" />
+        </div>
+
+        <div class="flex items-center gap-3">
+          <img id="u-logo-preview" src="https://placehold.co/80x80/0B0D10/3EE8A5?text=M" onerror="this.src='https://placehold.co/80x80/0B0D10/3EE8A5?text=M'" class="h-14 w-14 rounded-xl border border-white/10 object-cover bg-[#0B0D10]" />
+          <div class="flex-1">
+            <label class="mb-1 block text-xs text-slate-400">New Logo URL (IPFS / PNG / SVG) *</label>
+            <input id="u-logo" oninput="document.getElementById('u-logo-preview').src = this.value || 'https://placehold.co/80x80/0B0D10/3EE8A5?text=M'" placeholder="https://ipfs.io/ipfs/..." class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs text-slate-400">Website URL</label>
+          <input id="u-web" placeholder="https://..." class="obsidian-input w-full rounded-xl px-3.5 py-2.5 text-sm text-white" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="mb-1 block text-xs text-slate-400">X / Twitter</label>
+            <input id="u-x" placeholder="@handle" class="obsidian-input w-full rounded-xl px-3.5 py-2 text-xs text-white" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs text-slate-400">Telegram</label>
+            <input id="u-tg" placeholder="t.me/..." class="obsidian-input w-full rounded-xl px-3.5 py-2 text-xs text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs text-slate-400">Updated Description</label>
+          <textarea id="u-desc" rows="2" placeholder="Updated project bio..." class="obsidian-input w-full rounded-xl px-3.5 py-2 text-xs text-white"></textarea>
+        </div>
+
+        <!-- Metadata Update Fee Breakdown -->
+        <div class="space-y-1.5 rounded-xl border border-white/[0.06] bg-[#050608] p-3.5 text-xs">
+          <div class="flex justify-between text-slate-400">
+            <span>On-Chain Logo & Socials Update Fee</span>
+            <span class="font-mono font-bold text-white">0.0200 BNB</span>
+          </div>
+          <div class="flex justify-between text-slate-400">
+            <span>Indexer & Scanner Sync</span>
+            <span class="font-mono font-semibold text-[#3EE8A5]">Instant On-Chain Event</span>
+          </div>
+        </div>
+
+        <button onclick="updateTokenMetadata()" class="mint-melt-btn w-full rounded-xl py-3.5 text-xs font-black text-[#0B0D10] transition">
+          Save Logo & Metadata On-Chain (0.02 BNB)
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // BSC MAINNET CONTRACT CONFIGURATION (LIVE PRODUCTION ADDRESSES)
+    // =========================================================================
+    const FACTORY_ADDRESS   = "0x217A41b4b667D79a095f2Fa963e9dEfee56DdD22";
+    const LAUNCHPAD_ADDRESS = "0x60F42c0Bc3675b09da5C6cE4A995dD18e64CCa23";
+    const LOCKER_ADDRESS    = "0x066889d99E2D88035810dB9aA4062674bc42136B";
+    const BSC_RPC           = "https://bsc-dataseed.binance.org/";
+
+    const CFG_TUPLE = "tuple(string name, string symbol, uint8 decimals, uint256 initialSupply, uint256 maxSupply, bool mintable, bool burnable, bool pausable, bool blacklistEnabled, uint16 buyTaxBps, uint16 sellTaxBps, uint256 maxTxAmount, uint256 maxWalletAmount, address taxWallet, address router, address creator, address controller, bool isCurveLaunch)";
+    const META_TUPLE = "tuple(string logoURI, string website, string twitter, string telegram, string description)";
+// ... existing code ... -->
+    // =========================================================================
+    // LIVE MAINNET / SANDBOX STATE
+    // =========================================================================
+    let isSimulation = false;
+    let walletConnected = false;
+    let userAddress = null;
+// ... existing code ... -->
+    function toggleSimulationMode() {
+      isSimulation = !isSimulation;
+      const pill = document.getElementById('mode-pill');
+      const dot = document.getElementById('net-dot');
+      const label = document.getElementById('net-label');
+      if (isSimulation) {
+        pill.classList.remove('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]', 'hover:bg-[#F0B90B]/20');
+        pill.classList.add('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]', 'hover:bg-[#3EE8A5]/20');
+        dot.classList.replace('bg-[#F0B90B]', 'bg-[#3EE8A5]');
+        label.innerText = "Preview Sandbox";
+        showStatus("Switched to Instant Preview Sandbox Mode (Zero gas required to test all features).");
+      } else {
+        pill.classList.remove('border-[#3EE8A5]/25', 'bg-[#3EE8A5]/10', 'text-[#3EE8A5]', 'hover:bg-[#3EE8A5]/20');
+        pill.classList.add('border-[#F0B90B]/30', 'bg-[#F0B90B]/10', 'text-[#F0B90B]', 'hover:bg-[#F0B90B]/20');
+        dot.classList.replace('bg-[#3EE8A5]', 'bg-[#F0B90B]');
+        label.innerText = "BSC Mainnet RPC";
+        showStatus("Switched to Live BSC Mainnet Web3 Mode. Connect MetaMask/Trust Wallet to sign real txs.");
+      }
+    }
+// ... existing code ... -->
