@@ -119,19 +119,23 @@
         </nav>
       </div>
 
-      <!-- Right Controls -->
-      <div class="flex items-center gap-2.5 sm:gap-3">
+      <!-- Right Controls: Mode + Balance + Connect + Disconnect -->
+      <div class="flex items-center gap-2 sm:gap-2.5">
         <button type="button" onclick="toggleSimulationMode()" id="mode-pill" title="Toggle between Live BSC Mainnet RPC and Preview Sandbox" class="hidden sm:flex items-center gap-2 rounded-xl border border-[#F0B90B]/30 bg-[#F0B90B]/10 px-3 py-1.5 text-xs font-semibold text-[#F0B90B] hover:bg-[#F0B90B]/20 transition">
           <span id="net-dot" class="h-2 w-2 rounded-full bg-[#F0B90B] animate-pulse"></span>
           <span id="net-label">BSC Mainnet RPC</span>
         </button>
 
-        <div id="wallet-balance-box" class="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] bg-[#151820] px-3 py-2 font-mono text-xs font-bold text-[#F0B90B]">
+        <div id="wallet-balance-box" class="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] bg-[#151820] px-2.5 sm:px-3 py-2 font-mono text-xs font-bold text-[#F0B90B]">
           <span id="wallet-bnb">0.0000</span> BNB
         </div>
 
-        <button type="button" onclick="handleWalletClick()" id="connect-btn" class="mint-btn rounded-xl px-4 py-2 text-xs font-black text-[#0B0D10] transition">
+        <button type="button" onclick="handleWalletClick()" id="connect-btn" class="mint-btn rounded-xl px-3.5 sm:px-4 py-2 text-xs font-black text-[#0B0D10] transition">
           Connect Wallet
+        </button>
+
+        <button type="button" onclick="disconnectWallet()" id="disconnect-btn" title="Disconnect Wallet" class="hidden items-center gap-1 rounded-xl border border-[#FF4747]/35 bg-[#FF4747]/10 px-2.5 sm:px-3 py-2 text-xs font-bold text-[#FF4747] hover:bg-[#FF4747] hover:text-white transition">
+          <span>Disconnect</span>
         </button>
       </div>
     </div>
@@ -417,7 +421,7 @@
           </div>
         </div>
 
-        <!-- Modular Feature Toggles with Individual Add-On Prices -->
+        <!-- Modular Feature Toggles -->
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs font-bold">
           <label class="flex flex-col justify-between gap-1 rounded-xl border border-[#3EE8A5]/30 bg-[#151820] p-3 cursor-pointer">
             <div class="flex items-center gap-2">
@@ -629,7 +633,7 @@
       </div>
       <div class="flex flex-wrap justify-center gap-4 font-mono text-[11px]">
         <a href="https://bscscan.com/address/0x60F42c0Bc3675b09da5C6cE4A995dD18e64CCa23" target="_blank" class="hover:text-[#3EE8A5]">Launchpad ↗</a>
-        <a href="https://bscscan.com/address/0x217A41b4b667D79a095f2Fa963e9dEfee56DdD22" target="_blank" class="hover:text-[#3EE8A5]">Factory ↗</a>
+        <a href="https://bscscan.com/address/0x6f96c65CE9B86186Aa3bfe5A55B79596397596EA" target="_blank" class="hover:text-[#3EE8A5]">Factory V2 ↗</a>
         <a href="https://bscscan.com/address/0x066889d99E2D88035810dB9aA4062674bc42136B" target="_blank" class="hover:text-[#3EE8A5]">Locker ↗</a>
       </div>
     </div>
@@ -684,18 +688,40 @@
     ];
 
     // =========================================================================
-    // APPLICATION STATE
+    // APPLICATION STATE & EIP-6963 MOBILE WALLET DISCOVERY
     // =========================================================================
-    let isSimulation    = false;
-    let walletConnected = false;
-    let userAddress     = null;
-    let provider        = null;
-    let signer          = null;
-    let simBnbBalance   = 4.25;
+    let isSimulation     = false;
+    let walletConnected  = false;
+    let userAddress      = null;
+    let provider         = null;
+    let signer           = null;
+    let simBnbBalance    = 4.25;
+    let injectedProvider = null;
 
-    let liveCurves      = [];
-    let deployedTokens  = [];
-    let activeLocks     = [];
+    let liveCurves       = [];
+    let deployedTokens   = [];
+    let activeLocks      = [];
+
+    window.addEventListener("eip6963:announceProvider", (event) => {
+      if (event.detail && event.detail.provider) {
+        injectedProvider = event.detail.provider;
+      }
+    });
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+    function getActiveEthereumProvider() {
+      if (injectedProvider) return injectedProvider;
+      if (window.ethereum) {
+        if (Array.isArray(window.ethereum.providers) && window.ethereum.providers.length > 0) {
+          return window.ethereum.providers.find(p => p.isTrust || p.isTrustWallet || p.isMetaMask) || window.ethereum.providers[0];
+        }
+        return window.ethereum;
+      }
+      if (window.trustwallet && window.trustwallet.ethereum) {
+        return window.trustwallet.ethereum;
+      }
+      return null;
+    }
 
     // =========================================================================
     // TAB NAVIGATION & UI HELPERS
@@ -781,8 +807,45 @@
     }
 
     // =========================================================================
-    // WALLET CONNECTION (METAMASK / TRUST / RABBY / INJECTED EVM)
+    // WALLET CONNECTION & DISCONNECT (TRUST WALLET MOBILE + METAMASK + RABBY)
     // =========================================================================
+    async function ensureBscChain(eth) {
+      const currentChainHex = await eth.request({ method: "eth_chainId" });
+      if (parseInt(currentChainHex, 16) === 56) return true;
+
+      try {
+        await eth.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0x38" }]
+        });
+      } catch (switchErr) {
+        try {
+          await eth.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId: "0x38",
+              chainName: "BNB Smart Chain",
+              nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+              rpcUrls: ["https://bsc-dataseed.binance.org/"],
+              blockExplorerUrls: ["https://bscscan.com"]
+            }]
+          });
+          await eth.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x38" }]
+          });
+        } catch (addErr) {
+          const updatedChainHex = await eth.request({ method: "eth_chainId" });
+          if (parseInt(updatedChainHex, 16) !== 56) {
+            throw new Error("Mobile Wallet Network Locked: Tap the top-right (•••) menu in Trust Wallet and switch EVM Network to BNB Smart Chain.");
+          }
+        }
+      }
+
+      const finalChainHex = await eth.request({ method: "eth_chainId" });
+      return parseInt(finalChainHex, 16) === 56;
+    }
+
     async function handleWalletClick() {
       if (isSimulation) {
         walletConnected = true;
@@ -790,44 +853,24 @@
         document.getElementById('connect-btn').innerText = userAddress;
         document.getElementById('wallet-balance-box').classList.remove('hidden');
         document.getElementById('wallet-balance-box').classList.add('flex');
+        document.getElementById('disconnect-btn').classList.remove('hidden');
+        document.getElementById('disconnect-btn').classList.add('flex');
         document.getElementById('wallet-bnb').innerText = simBnbBalance.toFixed(4);
         showStatus("Connected to Preview Sandbox Wallet.");
         return;
       }
 
-      if (!window.ethereum) {
-        showStatus("No Web3 wallet detected! Install MetaMask or Trust Wallet, or click 'BSC Mainnet RPC' at top-right to test in Sandbox.", null, true);
+      const eth = getActiveEthereumProvider();
+      if (!eth) {
+        showStatus("No Web3 wallet detected! Open mintmelt.fun inside Trust Wallet, MetaMask, or Binance Wallet browser.", null, true);
         return;
       }
 
       try {
-        provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const network = await provider.getNetwork();
+        await eth.request({ method: "eth_requestAccounts" });
+        await ensureBscChain(eth);
 
-        if (Number(network.chainId) !== 56) {
-          try {
-            await window.ethereum.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: "0x38" }]
-            });
-          } catch (switchErr) {
-            if (switchErr.code === 4902) {
-              await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [{
-                  chainId: "0x38",
-                  chainName: "BNB Smart Chain Mainnet",
-                  nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
-                  rpcUrls: [BSC_RPC],
-                  blockExplorerUrls: ["https://bscscan.com"]
-                }]
-              });
-            }
-          }
-          provider = new ethers.BrowserProvider(window.ethereum);
-        }
-
+        provider = new ethers.BrowserProvider(eth);
         signer = await provider.getSigner();
         userAddress = await signer.getAddress();
         walletConnected = true;
@@ -839,6 +882,8 @@
         document.getElementById('connect-btn').innerText = shortAddr;
         document.getElementById('wallet-balance-box').classList.remove('hidden');
         document.getElementById('wallet-balance-box').classList.add('flex');
+        document.getElementById('disconnect-btn').classList.remove('hidden');
+        document.getElementById('disconnect-btn').classList.add('flex');
         document.getElementById('wallet-bnb').innerText = formattedBal;
 
         showStatus(`Connected to BNB Smart Chain (${shortAddr})`);
@@ -846,6 +891,37 @@
       } catch (err) {
         showStatus(err.reason || err.message || "Wallet connection failed", null, true);
       }
+    }
+
+    async function disconnectWallet() {
+      const eth = getActiveEthereumProvider();
+      if (eth && eth.request) {
+        try {
+          await eth.request({
+            method: "wallet_revokePermissions",
+            params: [{ eth_accounts: {} }]
+          });
+        } catch (_) {}
+      }
+
+      walletConnected = false;
+      userAddress     = null;
+      provider        = null;
+      signer          = null;
+      deployedTokens  = [];
+      activeLocks     = [];
+
+      document.getElementById('connect-btn').innerText = "Connect Wallet";
+      document.getElementById('wallet-balance-box').classList.add('hidden');
+      document.getElementById('wallet-balance-box').classList.remove('flex');
+      document.getElementById('disconnect-btn').classList.add('hidden');
+      document.getElementById('disconnect-btn').classList.remove('flex');
+      document.getElementById('wallet-bnb').innerText = "0.0000";
+
+      renderStandardTokens();
+      renderLocks();
+      populateMetadataSelect();
+      showStatus("Wallet disconnected.");
     }
 
     async function refreshBalance() {
@@ -1364,24 +1440,24 @@
         return;
       }
       list.innerHTML = activeLocks.map(l => `
-        <div class="flex items-center justify-between rounded-xl border border-white/10 bg-[#151820] p-3.5 text-xs">
+        <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-[#151820] p-3.5 text-xs">
           <div>
-            <div class="font-mono font-bold text-white">${l.token}</div>
-            <div class="text-slate-400">Amount: <span class="text-[#3EE8A5] font-mono">${l.amount}</span> • Unlocks: ${new Date(l.unlockTime * 1000).toLocaleDateString()}</div>
+            <div class="font-bold text-white">Lock #${l.id} • <span class="font-mono text-[#3EE8A5]">${l.amount}</span> Tokens</div>
+            <div class="font-mono text-[11px] text-slate-400">${l.token}</div>
           </div>
-          <span class="rounded bg-[#3EE8A5]/15 px-2.5 py-1 font-bold text-[#3EE8A5]">LOCKED</span>
+          <div class="font-mono text-[11px] text-[#F0B90B]">Unlocks: ${new Date(l.unlockTime * 1000).toLocaleDateString()}</div>
         </div>
       `).join('');
     }
 
     // =========================================================================
-    // POST-LAUNCH LOGO & METADATA UPDATER
+    // ON-CHAIN LOGO & METADATA UPDATER (0.02 BNB)
     // =========================================================================
     function populateMetadataSelect() {
       const sel = document.getElementById('u-select');
-      const all = [...deployedTokens, ...liveCurves.map(c => ({ address: c.token, name: c.name, symbol: c.symbol }))];
+      const all = [...deployedTokens.map(t => ({ address: t.address, label: `${t.name} ($${t.symbol})` })), ...liveCurves.map(c => ({ address: c.token, label: `${c.name} ($${c.symbol})` }))];
       sel.innerHTML = `<option value="">-- Choose a token or paste address below --</option>` +
-        all.map(t => `<option value="${t.address}">${t.name} ($${t.symbol}) — ${t.address}</option>`).join('');
+        all.map(item => `<option value="${item.address}">${item.label} (${item.address.slice(0, 8)}...)</option>`).join('');
     }
 
     function selectTokenForMetaEdit(addr) {
@@ -1397,14 +1473,14 @@
       const desc      = document.getElementById('u-desc').value.trim();
 
       if (!ethers.isAddress(tokenAddr) || !logoURI) {
-        showStatus("Enter a valid Token Contract Address and New Logo URL.", null, true);
+        showStatus("Enter a valid Token Address and New Logo URL.", null, true);
         return;
       }
 
       if (isSimulation) {
         simBnbBalance = Math.max(0, simBnbBalance - 0.02);
         refreshBalance();
-        showStatus("Sandbox: Updated on-chain Logo & Metadata!");
+        showStatus("Sandbox: Token logo & metadata updated on-chain!");
         return;
       }
 
@@ -1417,14 +1493,18 @@
         showStatus("Confirm 0.02 BNB on-chain metadata update...");
         const tok = new ethers.Contract(tokenAddr, TOKEN_ABI, signer);
         const tx = await tok.updateMetadata(logoURI, web, x, tg, desc, { value: ethers.parseEther("0.02") });
+        showStatus("Updating token metadata on BSC...", tx.hash);
         await tx.wait();
         await refreshBalance();
-        showStatus("🎨 Token Logo & Socials updated on-chain!", tx.hash);
+        showStatus("🎨 On-chain Logo & Socials updated successfully!", tx.hash);
       } catch (err) {
         showStatus(err.reason || err.shortMessage || err.message || "Metadata update failed", null, true);
       }
     }
 
+    // =========================================================================
+    // INITIAL LOADERS
+    // =========================================================================
     async function loadUserFactoryTokens() {
       if (!userAddress || isSimulation) return;
       try {
@@ -1445,19 +1525,16 @@
         deployedTokens = list;
         renderStandardTokens();
         populateMetadataSelect();
-      } catch (e) {}
+      } catch (_) {}
     }
 
     async function loadOnChainData() {
       await Promise.all([loadOnChainCurves(), loadUserFactoryTokens()]);
     }
 
-    // Boot App
     window.addEventListener('DOMContentLoaded', () => {
       syncCurvePreview();
       updateFactoryPrice();
-      renderStandardTokens();
-      renderLocks();
       loadOnChainCurves();
     });
   </script>
